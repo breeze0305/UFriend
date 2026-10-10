@@ -1,0 +1,273 @@
+html,body{margin:0;width:100%;height:100%;overflow:hidden;color-scheme:light dark}
+#ufriend-app .mf-nav{min-height:0;overflow-y:auto;scrollbar-width:thin}
+#ufriend-app .mf-meeting-drop{width:100%;min-height:110px;margin:0 0 18px;padding:20px;gap:8px;color:var(--mf-text)}
+#ufriend-app .mf-meeting-drop:hover,#ufriend-app .mf-meeting-drop:focus-visible{border-color:var(--mf-accent);background:var(--mf-soft)}
+#ufriend-app .mf-meeting-drop:focus-visible{outline:2px solid var(--mf-accent);outline-offset:2px}
+#ufriend-app .mf-meeting-drop strong{font-size:14px;font-weight:500}
+#ufriend-app .mf-meeting-drop span{font-size:12px;color:var(--mf-muted);line-height:1.6}
+#ufriend-app .mf-media-drag-feedback{position:absolute;inset:14px;z-index:30;pointer-events:none;display:grid;place-items:center;border:2px dashed var(--mf-accent);border-radius:14px;background:light-dark(#f4f7f2eF,#202b23ef);padding:24px;text-align:center}
+#ufriend-app .mf-media-drag-feedback>div{display:flex;flex-direction:column;align-items:center;gap:14px;color:var(--mf-accent)}
+#ufriend-app .mf-media-drag-feedback svg{width:38px;height:38px}
+#ufriend-app .mf-media-drag-feedback strong{font-size:22px;font-weight:500;line-height:1.6}
+#ufriend-app .mf-media-drag-feedback span{font-size:13px;color:var(--mf-muted)}
+@media(max-width:560px){#ufriend-app .mf-meeting-drop{padding:16px 12px;min-height:100px}#ufriend-app .mf-media-drag-feedback{inset:8px;padding:16px}#ufriend-app .mf-media-drag-feedback strong{font-size:18px}}
+#ufriend-app .mf-page[data-view=chat]{display:flex;flex-direction:column;overflow:hidden}
+#ufriend-app .mf-chat{display:flex;flex-direction:column;flex:1;min-height:0;width:100%;max-width:820px;margin:0 auto}
+#ufriend-app .mf-chat-log{flex:1;min-height:0;overflow-y:auto;scrollbar-width:thin;padding:12px 8px 24px;scroll-behavior:smooth}
+#ufriend-app .mf-chat-message{max-width:92%;width:fit-content;min-width:130px;border:1px solid var(--mf-line);border-radius:15px;padding:12px 16px;margin:0 0 18px;background:var(--mf-panel)}
+#ufriend-app .mf-chat-user{margin-left:auto;background:var(--mf-soft);border-color:transparent}
+#ufriend-app .mf-chat-message-head{display:flex;justify-content:space-between;align-items:center;gap:24px;color:var(--mf-muted);font-size:12px;margin-bottom:4px}
+#ufriend-app .mf-chat-message-head strong{font-weight:500}
+#ufriend-app .mf-chat-message-head .mf-icon{width:26px;min-height:26px;height:26px;padding:4px}
+#ufriend-app .mf-chat-text{white-space:pre-wrap;overflow-wrap:anywhere;line-height:1.85;font-size:14px}
+#ufriend-app .mf-chat-empty{min-height:240px;height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;color:var(--mf-muted);text-align:center}
+#ufriend-app .mf-chat-empty h2{font-size:21px;font-weight:500;color:var(--mf-text)}
+#ufriend-app .mf-chat-empty p{font-size:13px}
+#ufriend-app .mf-chat-symbol{display:grid;place-items:center;width:54px;height:54px;border-radius:17px;background:var(--mf-soft);color:var(--mf-accent)}
+#ufriend-app .mf-chat-symbol svg{width:26px;height:26px}
+#ufriend-app .mf-chat-pending{display:flex;align-items:center;gap:10px;color:var(--mf-muted);font-size:13px;margin:8px 0 20px}
+#ufriend-app .mf-chat-compose{flex-shrink:0;border:1px solid var(--mf-line);border-radius:14px;background:var(--mf-panel);padding:10px 12px}
+#ufriend-app .mf-chat-compose .mf-chat-input{min-height:76px;max-height:150px;border:0;resize:vertical;box-shadow:none;line-height:1.7;padding:6px 4px;background:transparent}
+#ufriend-app .mf-chat-input:focus-visible{outline:2px solid var(--mf-accent);outline-offset:3px}
+#ufriend-app .mf-chat-compose-foot{display:flex;align-items:center;justify-content:space-between;gap:12px;padding-top:7px}
+#ufriend-app .mf-chat-compose #chat-status:empty{display:none}
+#ufriend-app .mf-sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
+#ufriend-app .mf-api-service{border:1px solid var(--mf-line);border-radius:12px;padding:18px;margin-top:14px;background:var(--mf-panel)}
+#ufriend-app .mf-api-service h3{margin-bottom:14px}
+@media(max-width:700px){#ufriend-app .mf-chat-message{max-width:96%;padding:10px 12px}#ufriend-app .mf-chat-compose-foot .mf-sub{font-size:10px}#ufriend-app .mf-chat-empty{min-height:120px}}
+@media(prefers-reduced-motion:reduce){#ufriend-app .mf-chat-log{scroll-behavior:auto}}
+#ufriend-app{height:100vh;aspect-ratio:auto;border:0;border-radius:0;min-width:320px}
+#ufriend-app .mf-brandmark{display:block;object-fit:contain;background:transparent}
+#ufriend-app .mf-page{overscroll-behavior:contain}
+#ufriend-app .mf-subtle-link{border:0;background:none;color:var(--mf-accent);text-decoration:underline;padding:0}
+#ufriend-app .mf-notice{padding:12px 14px;margin:12px 0;background:var(--mf-side);border-radius:8px;color:var(--mf-muted);font-size:12px;line-height:1.7}
+#ufriend-app .mf-mailrow .mf-date{white-space:nowrap}
+#ufriend-app .mf-attachment{display:inline-flex;align-items:center;gap:7px;max-width:100%;padding:7px 10px;background:var(--mf-side);border-radius:6px;font-size:12px;overflow-wrap:anywhere}
+#ufriend-app .mf-attachments{display:flex;flex-wrap:wrap;gap:8px;margin:10px 0}
+#ufriend-app .mf-help{color:var(--mf-muted);font-size:12px;line-height:1.7;margin-top:8px}
+#ufriend-app .mf-settingsection .mf-field+.mf-field{margin-top:12px}
+#ufriend-app .mf-page[data-view=settings]{display:flex;flex-direction:column;overflow:hidden}
+#ufriend-app .mf-page[data-view=settings]>.mf-notice{flex-shrink:0;margin-top:0}
+#ufriend-app .mf-settings-layout{display:grid;grid-template-columns:176px minmax(0,1fr);gap:22px;flex:1;min-height:0;min-width:0}
+#ufriend-app .mf-settings-menu{min-width:0;min-height:0;overflow-y:auto;scrollbar-width:thin;padding:2px}
+#ufriend-app .mf-settings-menu-label{font-size:11px;color:var(--mf-muted);padding:0 12px 12px}
+#ufriend-app .mf-settings-tabs{display:flex;flex-direction:column;gap:6px}
+#ufriend-app .mf-settings-tab{display:grid;grid-template-columns:17px minmax(0,1fr);gap:10px;align-items:start;width:100%;min-height:64px;border:1px solid transparent;border-radius:9px;padding:11px 10px;background:transparent;text-align:left;color:var(--mf-muted)}
+#ufriend-app .mf-settings-tab>svg{margin-top:3px}
+#ufriend-app .mf-settings-tab-label{display:block;font-size:13px;font-weight:500;color:var(--mf-text)}
+#ufriend-app .mf-settings-tab-description{display:block;font-size:10px;line-height:1.5;margin-top:4px;overflow-wrap:anywhere}
+#ufriend-app .mf-settings-tab:hover{background:var(--mf-hover)}
+#ufriend-app .mf-settings-tab[aria-selected=true]{background:var(--mf-soft);color:var(--mf-accent)}
+#ufriend-app .mf-settings-tab[aria-selected=true] .mf-settings-tab-label{color:var(--mf-accent)}
+#ufriend-app .mf-settings-tab:focus-visible,#ufriend-app .mf-settings-panel:focus-visible{outline:2px solid var(--mf-accent);outline-offset:-2px}
+#ufriend-app .mf-settings-content{min-height:0;min-width:0;overflow-y:auto;overflow-x:hidden;scrollbar-width:thin;scrollbar-color:var(--mf-line) transparent;overscroll-behavior:contain;border:1px solid var(--mf-line);border-radius:12px;background:var(--mf-panel);padding:22px 24px}
+#ufriend-app .mf-settings-panel{min-width:0;min-height:100%;outline:none}
+#ufriend-app .mf-settings-panel>.mf-settingsection:first-child{padding-top:0}
+#ufriend-app .mf-settings-panel>.mf-settingsection:last-child{padding-bottom:0}
+#ufriend-app .mf-settings-content .mf-segment{max-width:100%}
+@media(max-width:900px),(max-height:620px){#ufriend-app .mf-settings-layout{grid-template-columns:minmax(0,1fr);grid-template-rows:auto minmax(0,1fr);gap:14px}#ufriend-app .mf-settings-menu{overflow:visible;padding:0}#ufriend-app .mf-settings-menu-label{display:none}#ufriend-app .mf-settings-tabs{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px}#ufriend-app .mf-settings-tab{min-height:42px;align-items:center;padding:9px 10px;gap:7px;background:var(--mf-side)}#ufriend-app .mf-settings-tab>svg{margin-top:0}#ufriend-app .mf-settings-tab-description{display:none}#ufriend-app .mf-settings-tab-label{font-size:12px}#ufriend-app .mf-settings-content{padding:18px}}
+@media(max-width:560px){#ufriend-app .mf-settings-tabs{gap:4px}#ufriend-app .mf-settings-tab{display:flex;justify-content:center;min-height:40px;padding:7px 3px;gap:4px}#ufriend-app .mf-settings-tab>svg{display:none}#ufriend-app .mf-settings-tab-label{font-size:11px}#ufriend-app .mf-settings-content{padding:14px}}
+#ufriend-app .mf-save-row{display:flex;gap:9px;align-items:center;flex-wrap:wrap;margin-top:14px}
+#ufriend-app .mf-detail-tools{display:flex;align-items:center;gap:14px 20px;flex-wrap:wrap;margin:18px 0 22px}
+#ufriend-app .mf-detail-tools>.mf-field{flex-direction:row;align-items:center;gap:10px;flex:0 0 auto;max-width:100%;white-space:nowrap}
+#ufriend-app .mf-detail-actions{display:flex;align-items:center;gap:10px;flex-wrap:wrap;min-width:0;max-width:100%}
+#ufriend-app .mf-detail-tools .mf-action{min-height:36px;padding:7px 12px}
+#ufriend-app .mf-detail-tools .mf-compact-select{min-height:36px}
+#ufriend-app #mail-body-view{min-width:0;margin:22px 0}
+#ufriend-app .mf-mail-html-frame{display:block;width:100%;min-width:0;min-height:120px;border:0;background:var(--mf-bg);box-sizing:content-box}
+#ufriend-app .mf-mail-content-status{display:flex;align-items:center;flex-wrap:wrap;gap:8px;margin:10px 0;color:var(--mf-muted);font-size:12px;line-height:1.7;overflow-wrap:anywhere}
+#ufriend-app .mf-mail-content-status[hidden]{display:none}
+#ufriend-app .mf-bodytext a{color:var(--mf-accent);text-decoration:underline;overflow-wrap:anywhere}
+#ufriend-app .mf-inline-status{font-size:12px;color:var(--mf-muted);margin:12px 0;white-space:pre-wrap}
+#ufriend-app .mf-editor{min-height:210px!important}
+#ufriend-app .mf-transcript-editor{min-height:220px!important;font-family:"Segoe UI",sans-serif;line-height:1.85}
+#ufriend-app .mf-recording-dialog .mf-dialogtop,#ufriend-app .mf-recording-dialog .mf-dialogfoot{flex-shrink:0}
+#ufriend-app .mf-recording-dialog .mf-dialogtop h2{min-width:0;overflow-wrap:anywhere}
+#ufriend-app .mf-recording-dialog .mf-recording-layout,#ufriend-app .mf-recording-dialog .mf-recording-playback,#ufriend-app .mf-recording-dialog .mf-recording-timeline{min-width:0;min-height:0}
+#ufriend-app .mf-recording-dialog #media-play-status:empty{display:none}
+#ufriend-app .mf-recording-dialog .mf-transcript{margin-top:0;gap:5px}
+#ufriend-app .mf-recording-dialog .mf-transcriptrow{align-items:start;padding:10px 8px;border-radius:7px;line-height:1.8;overflow-wrap:anywhere}
+#ufriend-app .mf-recording-dialog .mf-transcriptrow .mf-subtle-link{min-height:30px;font-variant-numeric:tabular-nums}
+#ufriend-app .mf-recording-dialog .mf-transcriptrow p{white-space:pre-wrap}
+#ufriend-app .mf-recording-dialog .mf-transcript-active{background:var(--mf-soft)}
+#ufriend-app .mf-recording-dialog #recording-transcript:focus-visible{outline:2px solid var(--mf-accent);outline-offset:-2px}
+#ufriend-app .mf-recording-video{width:1180px;height:min(760px,calc(100vh - 40px))}
+#ufriend-app .mf-recording-video .mf-dialogbody{display:flex;flex:1;overflow:hidden;padding:20px}
+#ufriend-app .mf-recording-video .mf-recording-layout{display:grid;grid-template-columns:minmax(0,1.35fr) minmax(300px,1fr);gap:22px;flex:1}
+#ufriend-app .mf-recording-video .mf-recording-playback{overflow:auto;scrollbar-width:thin;align-self:start;max-height:100%}
+#ufriend-app .mf-recording-video .mf-preview-media{display:block;aspect-ratio:16/9;max-height:calc(100vh - 230px);min-height:150px;margin:0;background:#000;object-fit:contain}
+#ufriend-app .mf-recording-video .mf-preview-media::cue{color:#fff;background:#000c;font-family:"Segoe UI","Microsoft JhengHei",sans-serif;line-height:1.4}
+#ufriend-app .mf-recording-video .mf-recording-tools{display:flex;align-items:center;flex-wrap:wrap;gap:10px;margin-top:12px}
+#ufriend-app .mf-recording-video .mf-recording-tools .mf-help{margin:0;flex:1;min-width:150px}
+#ufriend-app .mf-recording-video .mf-caption-toggle[aria-pressed=true]{background:var(--mf-soft);border-color:var(--mf-accent);color:var(--mf-accent)}
+#ufriend-app .mf-video-export{margin-top:16px;border-top:1px solid var(--mf-line);padding-top:16px}
+#ufriend-app .mf-video-export-actions{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+#ufriend-app .mf-video-export .mf-help{margin:9px 0 0}
+#ufriend-app .mf-video-export-status{font-size:12px;line-height:1.6;margin:9px 0 0;overflow-wrap:anywhere;white-space:pre-wrap;color:var(--mf-text)}
+#ufriend-app .mf-video-export-progress{display:block;width:100%;height:7px;margin-top:10px;accent-color:var(--mf-accent)}
+#ufriend-app .mf-video-export-card{display:block;color:var(--mf-accent)}
+#ufriend-app .mf-recording-video .mf-recording-timeline{display:flex;flex-direction:column;border-left:1px solid var(--mf-line);padding-left:20px}
+#ufriend-app .mf-recording-video .mf-recording-settings{flex-shrink:0}
+#ufriend-app .mf-recording-video #recording-transcript{flex:1;min-height:0;overflow:auto;scrollbar-width:thin;overscroll-behavior:contain;padding-right:6px}
+@media(max-width:800px){#ufriend-app .mf-recording-video{height:calc(100vh - 40px)}#ufriend-app .mf-recording-video .mf-dialogbody{overflow:auto;padding:16px}#ufriend-app .mf-recording-video .mf-recording-layout{display:flex;flex-direction:column;gap:18px;overflow:visible}#ufriend-app .mf-recording-video .mf-recording-playback{overflow:visible;max-height:none;flex-shrink:0;align-self:stretch}#ufriend-app .mf-recording-video .mf-preview-media{max-height:38vh;min-height:120px}#ufriend-app .mf-recording-video .mf-recording-timeline{overflow:visible;flex-shrink:0;border-left:0;border-top:1px solid var(--mf-line);padding:16px 0 0}#ufriend-app .mf-recording-video #recording-transcript{overflow:visible;flex:none;padding:0}#ufriend-app .mf-recording-dialog .mf-dialogfoot{padding:10px 12px;gap:6px}#ufriend-app .mf-recording-dialog .mf-dialogfoot .mf-action{padding:6px 8px;font-size:12px}}
+#ufriend-app .mf-danger{color:var(--mf-red)}
+#ufriend-app .mf-auto-switch{display:flex;align-items:center;gap:9px;font-size:12px;cursor:pointer}
+#ufriend-app .mf-cleanup-list{display:grid;gap:12px;margin-top:18px}
+#ufriend-app .mf-cleanup-card{display:flex;align-items:center;justify-content:space-between;gap:18px;border:1px solid var(--mf-line);border-radius:12px;padding:18px}
+#ufriend-app .mf-cleanup-card>div{min-width:0}
+#ufriend-app .mf-cleanup-card h3{font-size:14px;margin:0}
+#ufriend-app .mf-cleanup-card .mf-help{line-height:1.75;margin:8px 0}
+#ufriend-app .mf-cleanup-card .mf-sub{margin:0;font-variant-numeric:tabular-nums}
+#ufriend-app .mf-cleanup-card>button{flex-shrink:0}
+#ufriend-app .mf-cleanup-dialog .mf-dialogbody{font-size:13px;line-height:1.8;overflow-wrap:anywhere}
+#ufriend-app .mf-cleanup-total{font-weight:600;font-variant-numeric:tabular-nums}
+#ufriend-app .mf-cleanup-error{color:var(--mf-red);border-left:3px solid currentColor;padding-left:12px}
+@media(max-width:1100px){#ufriend-app .mf-cleanup-card{align-items:flex-start;flex-direction:column;gap:12px}}
+#ufriend-app .mf-sync-indicator{display:inline-flex;align-items:center;justify-content:center;flex-shrink:0}
+#ufriend-app .mf-sync-button[aria-busy=true]{opacity:.8}
+#ufriend-app .mf-sync-button[aria-busy=true] .mf-sync-indicator{animation:mf-sync-spin 1s linear infinite}
+@keyframes mf-sync-spin{to{transform:rotate(360deg)}}
+@media(prefers-reduced-motion:reduce){#ufriend-app .mf-sync-button[aria-busy=true] .mf-sync-indicator{animation:none}}
+#ufriend-app .mf-progress-indicator{display:inline-flex;align-items:center;justify-content:center;flex-shrink:0;animation:mf-sync-spin 1s linear infinite}
+#ufriend-app .mf-analysis-progress{display:flex;align-items:center;flex-wrap:wrap;gap:8px 18px;border:1px solid var(--mf-line);border-radius:12px;padding:12px 16px;margin-bottom:20px;font-size:13px}
+#ufriend-app .mf-analysis-progress .mf-help{flex-basis:100%;margin:0;overflow-wrap:anywhere}
+#ufriend-app .mf-analysis{border:1px solid var(--mf-line);border-radius:14px;padding:18px 20px;margin:20px 0}
+#ufriend-app .mf-analysis-summary{line-height:1.8;white-space:pre-wrap;overflow-wrap:anywhere;margin:6px 0}
+#ufriend-app .mf-analysis-mode,#ufriend-app .mf-priority-review{display:inline-block;font-size:11px;line-height:1.5;border:1px solid var(--mf-line);border-radius:4px;padding:1px 6px;color:var(--mf-muted);margin:4px 4px 4px 0}
+#ufriend-app .mf-priority-review{color:var(--mf-gold)}
+#ufriend-app .mf-dev-api{max-width:680px;margin-top:18px}
+#ufriend-app .mf-dev-api>.mf-field{margin-top:16px}
+#ufriend-app .mf-dev-api-status{display:flex;align-items:center;flex-wrap:wrap;gap:8px 14px;min-height:28px;margin-top:14px;font-size:13px;overflow-wrap:anywhere}
+#ufriend-app .mf-dev-api-status .mf-help{margin:0}
+@media(prefers-reduced-motion:reduce){#ufriend-app .mf-progress-indicator{animation:none}}
+#ufriend-app .mf-filter-summary{font-size:12px;color:var(--mf-muted);margin:9px 0}
+#ufriend-app .mf-pre{white-space:pre-wrap;overflow-wrap:anywhere}
+#ufriend-app .mf-missing{border-left:3px solid var(--mf-line);padding-left:11px;color:var(--mf-muted);font-size:12px;margin:13px 0}
+#ufriend-app .mf-input[type=number]{font-variant-numeric:tabular-nums}
+#ufriend-app .mf-grow{flex:1;min-width:0}
+#ufriend-app .mf-app-version{flex-shrink:0;max-width:100%;padding:7px 12px 0;font-size:11px;line-height:1.4;color:var(--mf-muted);font-variant-numeric:tabular-nums;overflow-wrap:anywhere;user-select:text}
+@media(max-width:560px){#ufriend-app .mf-app-version{padding:6px 0 0;font-size:9px;text-align:center}}
+#ufriend-app .mf-gmail-connect{padding:18px;border:1px solid var(--mf-line);border-radius:12px;margin:12px 0 18px;background:var(--mf-panel)}
+#ufriend-app .mf-gmail-connect strong{font-size:15px}
+#ufriend-app .mf-gmail-connect .mf-help{max-width:560px;line-height:1.8}
+#ufriend-app .mf-google-button{border:1px solid #747775;background:#fff;color:#1f1f1f;font-size:14px;font-weight:500;gap:10px;padding:10px 12px;max-width:100%;white-space:normal;min-height:40px}
+#ufriend-app .mf-google-mark{width:20px;height:20px;object-fit:contain;background:#fff;flex-shrink:0}
+#ufriend-app .mf-gmail-sync,#ufriend-app .mf-gmail-advanced{margin:16px 0;padding:12px 0;border-top:1px solid var(--mf-line)}
+#ufriend-app .mf-gmail-sync summary,#ufriend-app .mf-gmail-advanced summary{cursor:pointer;font-size:12px;color:var(--mf-muted);margin-bottom:12px}
+#ufriend-app .mf-gmail-manual{margin-top:16px}
+#ufriend-app .mf-gmail-manual .mf-field{margin:12px 0}
+#ufriend-app .mf-setup-steps{padding-left:22px;font-size:13px;line-height:1.7;margin:18px 0}
+#ufriend-app .mf-setup-steps li{padding-left:3px;margin:13px 0}
+#ufriend-app .mf-setup-steps p{color:var(--mf-muted);font-size:12px;margin:4px 0}
+#ufriend-app .mf-oauth-progress{display:flex;align-items:center;gap:14px;flex-wrap:wrap;padding:18px 0}
+#ufriend-app .mf-oauth-progress strong{font-size:14px}
+#ufriend-app .mf-oauth-progress .mf-help{flex-basis:100%;margin:0}
+#ufriend-app .mf-bottom-space{margin-bottom:18px}
+#ufriend-app .mf-device-main .mf-device-state{white-space:pre-wrap}
+#ufriend-app .mf-mailrow .mf-rowopen{grid-template-columns:110px minmax(0,1fr) auto}
+#ufriend-app .mf-searchgrid{grid-template-columns:minmax(0,1.3fr) minmax(120px,1fr)}
+#ufriend-app .mf-field small{font-size:11px;color:var(--mf-muted)}
+@media(max-width:820px){#ufriend-app .mf-mailrow .mf-rowopen{grid-template-columns:90px minmax(0,1fr)}#ufriend-app .mf-mailrow .mf-rowmeta{grid-column:2}#ufriend-app .mf-searchgrid{grid-template-columns:1fr}}
+@media(max-width:560px){#ufriend-app .mf-mailrow .mf-rowopen{grid-template-columns:minmax(0,1fr)}#ufriend-app .mf-mailrow .mf-rowmeta{grid-column:1}#ufriend-app .mf-account{flex-wrap:wrap;padding:10px 0}}
+html[lang=en] #ufriend-app .mf-navbtn{min-width:0;white-space:normal}
+html[lang=en] #ufriend-app .mf-navtext{min-width:0;overflow-wrap:break-word;line-height:1.4}
+html[lang=en] #ufriend-app .mf-brandcopy{min-width:0}
+html[lang=en] #ufriend-app .mf-brandtagline{white-space:normal;overflow-wrap:break-word}
+#ufriend-app .mf-meeting-open{display:flex;align-items:center;gap:14px;flex:1;min-width:0;border:0;background:transparent;color:inherit;font:inherit;text-align:left;cursor:pointer;padding:0;position:relative}
+#ufriend-app .mf-meeting-open .mf-filetext{min-width:0}
+#ufriend-app .mf-meeting-open .mf-filetext h3{overflow-wrap:anywhere}
+#ufriend-app .mf-meeting-open .mf-help{display:block}
+#ufriend-app .mf-meeting:has(.mf-meeting-open):hover{border-color:var(--mf-accent)}
+#ufriend-app .mf-meeting-open:focus-visible{outline:2px solid var(--mf-accent);outline-offset:5px;border-radius:4px}
+#ufriend-app .mf-upload-files{max-height:140px;overflow:auto;padding-left:22px;overflow-wrap:anywhere;font-size:13px;line-height:1.8}
+#ufriend-app .mf-recording-queue-status{color:var(--mf-muted);font-size:13px;line-height:1.8}
+@media(max-width:760px){#ufriend-app .mf-meeting:has(.mf-meeting-open){flex-wrap:wrap}#ufriend-app .mf-meeting-open{flex-basis:100%}#ufriend-app .mf-meeting:has(.mf-meeting-open) .mf-fileactions{margin-left:auto;max-width:100%}}
+#ufriend-app .mf-ai-source-control{display:inline-flex;align-items:center;gap:7px;min-width:0;font-size:12px;color:var(--mf-muted);white-space:nowrap}
+#ufriend-app .mf-ai-source-select{width:88px;min-width:88px;min-height:34px;padding:5px 24px 5px 9px;font-size:12px;color:var(--mf-text)}
+#ufriend-app .mf-task-action-items{display:contents}
+#ufriend-app .mf-ai-source-hint{display:flex;align-items:center;flex-wrap:wrap;gap:3px 7px;flex-basis:100%;min-width:0;max-width:100%;font-size:11px;line-height:1.6;color:var(--mf-muted);white-space:normal;overflow-wrap:anywhere}
+#ufriend-app .mf-ai-source-hint:empty{display:none}
+#ufriend-app .mf-ai-source-hint .mf-source-settings-link{border:0;background:transparent;padding:1px 0;min-height:0;font-size:11px;text-decoration:underline;text-underline-offset:3px;gap:4px}
+#ufriend-app .mf-ai-source-hint .mf-source-settings-link svg{width:12px;height:12px}
+#ufriend-app #mail-analysis-actions,#ufriend-app #polish-actions,#ufriend-app #translation-actions,#ufriend-app #ocr-actions,#ufriend-app #chat-actions{display:flex;align-items:center;flex-wrap:wrap;gap:8px;min-width:0}
+#ufriend-app #mail-analysis-actions{max-width:520px}
+#ufriend-app .mf-top:has(#mail-analysis-actions){align-items:flex-start}
+#ufriend-app .mf-top:has(#mail-analysis-actions)>.mf-flex{justify-content:flex-end;min-width:0;flex:0 1 auto}
+#ufriend-app .mf-polish-block .mf-content-head{align-items:flex-start;flex-wrap:wrap}
+#ufriend-app #polish-actions{margin-left:auto;justify-content:flex-end}
+#ufriend-app #polish-actions .mf-ai-source-hint,#ufriend-app #translation-source-hint .mf-ai-source-hint,#ufriend-app #chat-actions .mf-ai-source-hint{justify-content:flex-end;text-align:right}
+#ufriend-app .mf-translation-footer{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:8px 14px}
+#ufriend-app #translation-status{min-width:0;overflow-wrap:anywhere}
+#ufriend-app #translation-actions{justify-content:flex-end;margin-left:0}
+#ufriend-app #translation-source-hint{grid-column:1/-1;min-width:0}
+#ufriend-app #translation-source-hint:has(.mf-ai-source-hint:empty){display:none}
+#ufriend-app .mf-chat-compose-foot{flex-wrap:wrap;align-items:flex-end}
+#ufriend-app .mf-chat-compose-foot>.mf-sub{flex:1 1 130px}
+#ufriend-app #chat-actions{justify-content:flex-end;flex:1 1 245px;margin-left:auto}
+#ufriend-app .mf-chat-message-head{flex-wrap:wrap;gap:7px}
+#ufriend-app .mf-result-source{display:inline-block;padding:1px 6px;border:1px solid var(--mf-line);border-radius:5px;font-size:11px;font-weight:400;line-height:1.5;color:var(--mf-muted);background:var(--mf-side);white-space:nowrap}
+#ufriend-app .mf-chat-message-head .mf-result-source{margin-left:auto}
+#ufriend-app .mf-meeting-controls{display:flex;flex-direction:column;align-items:flex-end;gap:5px;min-width:0;max-width:340px;flex:0 1 auto}
+#ufriend-app .mf-meeting:has(.mf-meeting-open) .mf-meeting-controls .mf-fileactions{flex-wrap:wrap;justify-content:flex-end;max-width:none;margin-left:0}
+#ufriend-app .mf-meeting-controls [data-recording-source-hint]{width:100%;min-width:0}
+#ufriend-app .mf-meeting-controls .mf-ai-source-hint{justify-content:flex-end;text-align:right}
+#ufriend-app .mf-meeting-controls .mf-recording-source-control{margin-right:4px}
+#ufriend-app .mf-transcription-options{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin:14px 0}
+#ufriend-app .mf-transcription-options .mf-field{min-width:0;margin:0}
+#ufriend-app .mf-transcription-options .mf-input{min-width:0;max-width:100%}
+#ufriend-app .mf-recording-settings .mf-transcription-options{margin:0 0 10px}
+#ufriend-app .mf-recording-settings .mf-ai-source-control{flex-direction:column;align-items:stretch;gap:6px;white-space:normal}
+#ufriend-app .mf-recording-settings .mf-ai-source-select{width:100%;min-width:0}
+#ufriend-app #upload-source-hint,#ufriend-app #schedule-source-hint,#ufriend-app #recording-source-hint{margin:8px 0 12px}
+#ufriend-app #upload-source-hint:has(.mf-ai-source-hint:empty),#ufriend-app #schedule-source-hint:has(.mf-ai-source-hint:empty),#ufriend-app #recording-source-hint:has(.mf-ai-source-hint:empty){display:none}
+#ufriend-app .mf-model-config-tabs{display:flex;gap:4px;margin:0 0 22px}
+#ufriend-app .mf-model-config-tabs [role=tab]{display:flex;align-items:center;justify-content:center;gap:7px;flex:1}
+#ufriend-app .mf-model-config-tabs [aria-selected=true]{background:var(--mf-panel);color:var(--mf-accent);box-shadow:0 1px 4px #00000012}
+#ufriend-app .mf-model-config-panel{max-width:680px;min-width:0}
+#ufriend-app .mf-local-backend-field{max-width:380px;margin-top:16px}
+#ufriend-app .mf-cloud-model-field{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:7px 10px;align-items:end}
+#ufriend-app .mf-cloud-model-field>.mf-field{min-width:0}
+#ufriend-app .mf-cloud-model-field>.mf-dev-api-status{grid-column:1/-1;margin:0;min-height:0;font-size:12px}
+#ufriend-app .mf-temperature-input{max-width:220px}
+#ufriend-app .mf-ugen-preview{border-top:1px solid var(--mf-line);margin-top:24px;padding-top:16px}
+#ufriend-app .mf-ugen-preview>summary{cursor:pointer;color:var(--mf-muted);font-size:13px}
+#ufriend-app .mf-ugen-preview>.mf-pool-section:first-of-type{border-top:0;padding-top:0;margin-top:18px}
+@media(max-width:900px){#ufriend-app .mf-meeting:has(.mf-meeting-open){flex-wrap:wrap}#ufriend-app .mf-meeting-open{flex-basis:100%}#ufriend-app .mf-meeting-controls{margin-left:auto;max-width:100%}#ufriend-app #polish-actions{flex-basis:100%;justify-content:flex-start}#ufriend-app #polish-actions .mf-ai-source-hint{justify-content:flex-start;text-align:left}}
+@media(max-width:900px){#ufriend-app .mf-translation-footer{grid-template-columns:minmax(0,1fr)}#ufriend-app #translation-actions{justify-content:flex-start}#ufriend-app #translation-source-hint .mf-ai-source-hint{justify-content:flex-start;text-align:left}}
+@media(max-width:700px){#ufriend-app .mf-chat-compose-foot{gap:7px}#ufriend-app .mf-chat-compose-foot>.mf-sub{flex-basis:100%}#ufriend-app #chat-actions{flex-basis:100%}#ufriend-app .mf-transcription-options{gap:10px}#ufriend-app .mf-model-config-tabs [role=tab]{padding:8px 10px}}
+@media(max-width:560px){#ufriend-app .mf-ai-source-control{font-size:11px;gap:5px}#ufriend-app .mf-ai-source-select{width:78px;min-width:78px;min-height:31px;font-size:11px}#ufriend-app .mf-transcription-options{grid-template-columns:minmax(0,1fr)}#ufriend-app .mf-recording-settings .mf-ai-source-select{width:100%}#ufriend-app .mf-cloud-model-field{grid-template-columns:minmax(0,1fr)}#ufriend-app .mf-cloud-model-field>.mf-action{justify-self:start}#ufriend-app .mf-result-source{font-size:10px}}
+#ufriend-app .mf-ai-source-running{flex-basis:100%;font-size:11px;line-height:1.6;color:var(--mf-accent);overflow-wrap:anywhere}
+#ufriend-app #polish-actions .mf-ai-source-running,#ufriend-app #chat-actions .mf-ai-source-running{text-align:right}
+#ufriend-app #mail-analysis-actions.mf-mail-organize-toolbar{max-width:none;justify-content:flex-start;margin-bottom:8px}
+#ufriend-app .mf-mail-organize-scope{font-size:12px;line-height:1.7;color:var(--mf-muted);margin:8px 0 16px;overflow-wrap:anywhere}
+#ufriend-app .mf-analysis-current{flex-basis:100%;font-size:12px;line-height:1.6;overflow-wrap:anywhere}
+#ufriend-app .mf-mail-category{display:inline-flex;align-self:flex-start;max-width:100%;padding:2px 7px;border:1px solid var(--mf-line);border-radius:5px;font-size:11px;line-height:1.5;font-weight:400;color:var(--mf-accent);background:var(--mf-soft);white-space:normal;overflow-wrap:anywhere}
+#ufriend-app .mf-mail-category[data-category=unclassified]{border-style:dashed;color:var(--mf-muted);background:transparent}
+#ufriend-app .mf-mail-category[data-category-status=error]{color:var(--mf-red);background:var(--mf-red-bg)}
+#ufriend-app .mf-mail-card-summary{overflow-wrap:anywhere}
+#ufriend-app .mf-mail-card-tags{display:flex;align-items:center;justify-content:flex-end;flex-wrap:wrap;gap:6px;min-width:0}
+#ufriend-app .mf-cardfoot:has(.mf-mail-card-tags){align-items:flex-start;flex-wrap:wrap;gap:8px 14px}
+#ufriend-app .mf-cardfoot:has(.mf-mail-card-tags)>.mf-reason{flex:1 1 180px;overflow-wrap:anywhere}
+#ufriend-app .mf-rowopen:has(.mf-mail-preview){align-items:start;row-gap:6px}
+#ufriend-app .mf-mail-preview{display:flex;flex-direction:column;gap:6px;min-width:0}
+#ufriend-app .mf-mail-preview-subject{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;line-height:1.5}
+#ufriend-app .mf-mail-summary{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;font-size:12px;font-weight:400;line-height:1.6;color:var(--mf-muted);overflow-wrap:anywhere}
+#ufriend-app .mf-rowopen:has(.mf-mail-preview)>.mf-rowmeta{max-width:155px;justify-content:flex-end;flex-wrap:wrap;gap:5px}
+#ufriend-app .mf-model-defaults{display:grid;gap:9px;padding:12px 14px;margin:12px 0 20px;border:1px solid var(--mf-line);border-radius:8px;background:var(--mf-side)}
+#ufriend-app .mf-model-default-row{display:flex;align-items:center;justify-content:space-between;gap:12px;min-width:0;font-size:13px}
+#ufriend-app .mf-model-default-row>span{min-width:0;overflow-wrap:anywhere}
+#ufriend-app .mf-model-default-control{display:flex;align-items:center;gap:8px;font-size:12px;white-space:nowrap;cursor:pointer}
+#ufriend-app .mf-model-default-control input{appearance:none;position:relative;flex-shrink:0;width:32px;height:18px;border:1px solid var(--mf-line);border-radius:12px;background:var(--mf-line);cursor:pointer}
+#ufriend-app .mf-model-default-control input:after{content:'';position:absolute;top:2px;left:2px;width:12px;height:12px;border-radius:50%;background:var(--mf-panel)}
+#ufriend-app .mf-model-default-control input:checked{background:var(--mf-accent);border-color:var(--mf-accent)}
+#ufriend-app .mf-model-default-control input:checked:after{left:16px;background:var(--mf-on)}
+#ufriend-app .mf-model-default-control input:focus-visible{outline:2px solid var(--mf-accent);outline-offset:3px}
+#ufriend-app .mf-model-default-control input[aria-disabled=true]{opacity:.55;cursor:wait}
+#ufriend-app #model-default-status[data-state=error],#ufriend-app #mail-schedule-save-status[data-state=error]{color:var(--mf-red)}
+#ufriend-app .mf-mail-schedule-form{display:flex;flex-direction:column;align-items:flex-start;gap:14px;margin:16px 0}
+#ufriend-app .mf-mail-schedule-time{display:flex;align-items:flex-end;gap:12px;flex-wrap:wrap}
+#ufriend-app #mail-schedule-time{width:160px;max-width:100%}
+#ufriend-app .mf-mail-schedule-status{margin-top:14px;padding:12px 14px;border-left:3px solid var(--mf-line);background:var(--mf-side);font-size:12px;line-height:1.8;white-space:pre-line;overflow-wrap:anywhere;color:var(--mf-muted)}
+#ufriend-app .mf-mail-schedule-status[data-state=error]{border-color:var(--mf-red)}
+@media(max-width:900px){#ufriend-app #polish-actions .mf-ai-source-running{text-align:left}}
+@media(max-width:820px){#ufriend-app .mf-rowopen:has(.mf-mail-preview)>.mf-rowmeta{max-width:none;justify-content:flex-start}}

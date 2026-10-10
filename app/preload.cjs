@@ -1,0 +1,12 @@
+'use strict';
+const {contextBridge,ipcRenderer,webUtils}=require('electron');
+const ALLOWED=new Set(['bootstrap','settings.save','secrets.save','secrets.reset','gmail.connect','gmail.configure','gmail.importConfig','gmail.clearConfig','gmail.openConsole','gmail.cancel','gmail.disconnect','gmail.sync','gmail.labels','gmail.labelCreate','mail.import','mail.modify','mail.openSource','mail.attachment','draft.attach','draft.openRemote','draft.reloadRemote','draft.fromMail','draft.save','draft.remove','draft.send','media.import','media.update','media.remove','media.start','media.pause','transcript.save','transcript.import','transcript.export','ocr.capture','ocr.import','ocr.start','ocr.cancel','ocr.save','ocr.clear','polish.save','polish.start','polish.cancel','chat.save','chat.send','chat.cancel','chat.new','chat.select','chat.rename','chat.delete','translation.save','translation.start','translation.cancel','llm.prompts.get','llm.prompts.save','llm.prompts.reset','mail.analyze','mail.cancelAnalysis','models.health','clipboard.write','logs.export','data.open','pool.add','pool.remove','pool.test','pool.cancel']);
+for(const name of ['diagnostics.open','diagnostics.export','diagnostics.report','data.cleanupInfo','data.clear','mail.content','mail.image','mail.openLink','media.choose','media.schedule','video.export','video.cancel','video.reveal','model.source'])ALLOWED.add(name);
+contextBridge.exposeInMainWorld('ufriend',{
+  // Transfer plain envelopes: Error custom properties are lost across contextBridge.
+  request:async(name,args={})=>{if(!ALLOWED.has(name))return{ok:false,error:{code:'UNSUPPORTED_ACTION',message:'不支援的操作。'}};return ipcRenderer.invoke('ufriend:call',name,args);},
+  onChange:callback=>{if(typeof callback!=='function')return()=>{};const listener=(_event,data)=>callback(data);ipcRenderer.on('ufriend:change',listener);return()=>ipcRenderer.removeListener('ufriend:change',listener);},
+  onChatStream:callback=>{if(typeof callback!=='function')return()=>{};const listener=(_event,data)=>callback(data);ipcRenderer.on('ufriend:chat-stream',listener);return()=>ipcRenderer.removeListener('ufriend:chat-stream',listener);},
+  // FileList cannot cross contextBridge intact; the renderer passes a plain File array.
+  filePaths:files=>{if(!Array.isArray(files))throw new TypeError('請提供拖入的檔案清單。');return files.map(file=>webUtils.getPathForFile(file)).filter(Boolean);}
+});

@@ -1,0 +1,22 @@
+{
+  "schemaVersion": 1,
+  "product": "FFmpeg",
+  "version": "8.1.2-essentials_build-www.gyan.dev",
+  "platform": "win32",
+  "architecture": "x64",
+  "license": "GPL-3.0",
+  "sourceRevision": "38b88335f9",
+  "publisher": "Gyan Doshi",
+  "publisherUrl": "https://www.gyan.dev/ffmpeg/builds/",
+  "archive": {
+    "url": "https://www.gyan.dev/ffmpeg/builds/packages/ffmpeg-8.1.2-essentials_build.7z",
+    "sha256": "e25b682664025d49034c981afb4bae36238a40f29a3cc1c713ad9a8b5b3528f6"
+  },
+  "configuration": "--enable-gpl --enable-version3 --enable-static --disable-w32threads --disable-autodetect --enable-cairo --enable-fontconfig --enable-iconv --enable-gnutls --enable-libxml2 --enable-gmp --enable-bzlib --enable-lzma --enable-zlib --enable-libsrt --enable-libssh --enable-libzmq --enable-avisynth --enable-sdl2 --enable-libwebp --enable-libx264 --enable-libx265 --enable-libxvid --enable-libaom --enable-libopenjpeg --enable-libvpx --enable-mediafoundation --enable-libass --enable-libfreetype --enable-libfribidi --enable-libharfbuzz --enable-libvidstab --enable-libvmaf --enable-libzimg --enable-amf --enable-cuda-llvm --enable-cuvid --enable-dxva2 --enable-d3d11va --enable-d3d12va --enable-ffnvcodec --enable-libvpl --enable-nvdec --enable-nvenc --enable-vaapi --enable-openal --enable-libgme --enable-libopenmpt --enable-libopencore-amrwb --enable-libmp3lame --enable-libtheora --enable-libvo-amrwbenc --enable-libgsm --enable-libopencore-amrnb --enable-libopus --enable-libspeex --enable-libvorbis --enable-librubberband",
+  "sha256": {
+    "ffmpeg.exe": "1326dde4c84ff1f96fe6b8916c5bed29e163e9b5dccf995f6f3db069d143ec5e",
+    "COPYING.GPLv3.txt": "8ceb4b9ee5adedde47b31e975c1d90c73ad27b6b165a1dcd80c7c545eb65b903",
+    "UPSTREAM-README.txt": "9172433fb251059a58d2ff11ba8c6132e04819136ed96e809563911ff0d13816",
+    "SOURCES.md": "1e93ff45d2063b46de38190e3417c8764c9d4409b2fb77f98d3548c9c9fdd748"
+  }
+}

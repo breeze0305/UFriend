@@ -1,0 +1,20 @@
+* text=auto
+*.js text eol=lf
+*.cjs text eol=lf
+*.json text eol=lf
+*.css text eol=lf
+*.html text eol=lf
+*.md text eol=lf
+*.cs text eol=lf
+*.ps1 text eol=crlf
+*.cmd text eol=crlf
+*.bat text eol=crlf
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.ico binary
+*.pdf binary
+*.docx binary
+# Keep the upstream FFmpeg notices byte-for-byte for the pinned SHA-256 checks.
+scripts/runtime/ffmpeg/COPYING.GPLv3.txt -text
+scripts/runtime/ffmpeg/UPSTREAM-README.txt -text -whitespace

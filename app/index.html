@@ -1,0 +1,43 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' ufriend-asset: data:; media-src 'self' ufriend-asset:; frame-src 'self' about:; connect-src 'none'; object-src 'none'; base-uri 'none'; form-action 'none'">
+  <title data-ui-text="UFriend | 你的本地助手">UFriend | 你的本地助手</title>
+  <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="desktop.css">
+</head>
+<body>
+  <div id="ufriend-app" aria-label="UFriend | 你的本地助手" data-ui-aria="UFriend | 你的本地助手">
+    <aside class="mf-side" aria-label="主要導覽" data-ui-aria="主要導覽">
+      <button type="button" class="mf-brand" data-nav="home" aria-label="UFriend | 你的本地助手 · 回到首頁" data-ui-aria="UFriend | 你的本地助手 · 回到首頁"><img class="mf-brandmark" src="assets/ufriend.png" alt="UFriend 葉芽夥伴標誌" data-ui-alt="UFriend 葉芽夥伴標誌" width="32" height="32"><span class="mf-brandcopy"><span class="mf-brandname">UFriend</span><span class="mf-brandtagline" data-ui-text="你的本地助手">你的本地助手</span></span></button>
+      <nav class="mf-nav">
+        <button type="button" class="mf-navbtn" data-nav="inbox" aria-label="郵件收件夾"><i data-lucide="inbox" aria-hidden="true"></i><span class="mf-navtext">郵件收件夾</span></button>
+        <button type="button" class="mf-navbtn" data-nav="meetings" aria-label="會議記錄"><i data-lucide="audio-lines" aria-hidden="true"></i><span class="mf-navtext">會議記錄</span></button>
+        <button type="button" class="mf-navbtn" data-nav="ocr" aria-label="OCR 文字識別"><i data-lucide="scan-text" aria-hidden="true"></i><span class="mf-navtext">OCR 文字識別</span></button>
+        <button type="button" class="mf-navbtn" data-nav="polish" aria-label="文章潤句"><i data-lucide="pen-line" aria-hidden="true"></i><span class="mf-navtext">文章潤句</span></button>
+        <button type="button" class="mf-navbtn" data-nav="translation" aria-label="文字翻譯"><i data-lucide="languages" aria-hidden="true"></i><span class="mf-navtext">文字翻譯</span></button>
+        <button type="button" class="mf-navbtn" data-nav="chat" aria-label="LLM 對話"><i data-lucide="messages-square" aria-hidden="true"></i><span class="mf-navtext">LLM 對話</span></button>
+        <button type="button" class="mf-navbtn" data-nav="logs" aria-label="系統紀錄"><i data-lucide="list-tree" aria-hidden="true"></i><span class="mf-navtext">系統紀錄</span></button>
+      </nav>
+      <button type="button" class="mf-navbtn mf-settings-nav" data-nav="settings" aria-label="設定"><i data-lucide="settings-2" aria-hidden="true"></i><span class="mf-navtext">設定</span></button>
+      <p id="mf-app-version" class="mf-app-version" hidden></p>
+    </aside>
+    <main class="mf-main"><header class="mf-top" id="mf-top"></header><div class="mf-page" id="mf-page"><p class="mf-empty">正在開啟你的工作空間…</p></div></main>
+    <div class="mf-overlay" id="mf-overlay" hidden></div>
+    <div class="mf-media-drag-feedback" id="media-drag-feedback" role="status" aria-live="polite" hidden><div><i data-lucide="upload" aria-hidden="true"></i><strong data-ui-text="放開即可匯入影音檔案">放開即可匯入影音檔案</strong><span data-ui-text="支援一次拖入多個檔案">支援一次拖入多個檔案</span></div></div>
+    <div class="mf-toast" id="mf-toast" role="status" aria-live="polite" hidden></div>
+  </div>
+  <script src="../node_modules/lucide/dist/umd/lucide.min.js"></script>
+  <script src="../node_modules/dompurify/dist/purify.min.js"></script>
+  <script src="locales/en-common.js"></script>
+  <script src="locales/en-settings.js"></script>
+  <script src="locales/en-native.js"></script>
+  <script src="locales/en-extra.js"></script>
+  <script src="i18n.js"></script>
+  <script src="mail-view.js"></script>
+  <script src="recording-player.js"></script>
+  <script src="renderer.js"></script>
+</body>
+</html>
