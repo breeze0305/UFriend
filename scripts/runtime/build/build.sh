@@ -32,6 +32,7 @@ cpp = '$CXX'
 ar = '$AR'
 strip = '$STRIP'
 windres = '$CROSS-windres'
+nasm = 'nasm'
 pkg-config = 'pkg-config'
 [properties]
 needs_exe_wrapper = true
