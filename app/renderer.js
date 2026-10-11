@@ -763,6 +763,7 @@
   }
   function mediaRuntimeSettingsMarkup(){
     const runtime=data.mediaRuntime||{},busy=runtime.installing||ui.busy.has('media-runtime-download:')||ui.busy.has('media-runtime-folder:');
+    if(runtime.bundled)return uiText`<h2>影音元件</h2><p class="mf-help">此版本內含 FFmpeg，可直接匯出字幕影片與處理雲端語音轉錄的音訊。</p><p id="media-runtime-status" role="status" aria-live="polite">影音元件已內建，無需另外安裝。</p>`;
     const status=runtime.installing?tr('正在下載與驗證影音元件…'):runtime.installed?tr('影音元件已就緒。'):tr('尚未安裝影音元件。');
     const locked=disabled(busy||runtime.installed||!runtime.available);
     return uiText`<h2>影音元件</h2><p class="mf-help">匯出字幕影片與雲端語音轉錄需要 FFmpeg；只安裝一次，更新程式後仍可用。</p><p class="mf-help">自動下載需要 7-Zip，也可選取已解壓的官方套件。</p><p id="media-runtime-status" role="status" aria-live="polite">${esc(status)}</p>${runtime.error?'<p class="mf-notice" role="alert">'+esc(tr(runtime.error))+'</p>':''}<div class="mf-flex">${btn(tr('下載並安裝影音元件'),'media-runtime-download','download','',locked)}${btn(tr('選擇已解壓的套件'),'media-runtime-folder','folder-open','',locked)}${btn(tr('影音元件安裝說明'),'media-runtime-help','circle-help')}</div>`;

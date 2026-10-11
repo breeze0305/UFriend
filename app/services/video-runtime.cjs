@@ -10,14 +10,18 @@ function resolveVideoFfmpegPath({ resourcesPath, projectRoot, userDataPath, isPa
     if (typeof resourcesPath !== 'string' || !path.isAbsolute(resourcesPath)) {
       throw new Error('A packaged video export requires an absolute resourcesPath.');
     }
+    const bundled = path.join(resourcesPath, 'ffmpeg', 'ffmpeg.exe');
+    if (userDataPath !== undefined && (typeof userDataPath !== 'string' || !path.isAbsolute(userDataPath))) {
+      throw new Error('A persistent media runtime requires an absolute userDataPath.');
+    }
+    // A complete package carries the runtime verified for that build. An older
+    // optional installation must not shadow the executable shipped with it.
+    if (fs.existsSync(bundled)) return bundled;
     if (userDataPath !== undefined) {
-      if (typeof userDataPath !== 'string' || !path.isAbsolute(userDataPath)) {
-        throw new Error('A persistent media runtime requires an absolute userDataPath.');
-      }
       const persistent = path.join(userDataPath, 'media-runtime', 'ffmpeg', 'ffmpeg.exe');
       if (fs.existsSync(persistent)) return persistent;
     }
-    return path.join(resourcesPath, 'ffmpeg', 'ffmpeg.exe');
+    return bundled;
   }
   if (typeof projectRoot !== 'string' || !path.isAbsolute(projectRoot)) {
     throw new Error('A development video export requires an absolute projectRoot.');

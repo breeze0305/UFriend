@@ -6,7 +6,7 @@ UFriend 使用獨立的 FFmpeg 程序處理含字幕影片匯出，以及雲端�
 
 ## 從 UFriend 設定安裝
 
-公開單一 EXE 與不含影音元件的 ZIP 都**不內附 FFmpeg 執行檔**。先開啟 UFriend，再進入 **設定 → 一般 → 影音元件**（**Settings → General → Media runtime**）：
+目前公開單一 EXE 與不含影音元件的 ZIP 都**不內附 FFmpeg 執行檔**。若使用自行建置的 `Portable-WithFFmpeg.exe` 本機版，影音元件已內建，略過安裝步驟即可使用。先開啟 UFriend，再進入 **設定 → 一般 → 影音元件**（**Settings → General → Media runtime**）：
 
 | 按鈕 | 行為 |
 | --- | --- |
@@ -35,7 +35,7 @@ UFriend 使用獨立的 FFmpeg 程序處理含字幕影片匯出，以及雲端�
 
 它與工作資料 `%APPDATA%\UFriend\workspace` 分開，不放在單一 EXE 每次啟動產生的暫存解壓目錄。使用相同 Windows 帳戶及資料目錄時，重新啟動或換成新的 portable EXE 後仍可使用。若設定 `UFRIEND_DATA_DIR`，影音元件會保存在該目錄下的 `media-runtime/ffmpeg/`。
 
-程式優先使用這個持久 runtime；沒有時才查看資料夾包內的 `resources/ffmpeg/`。關閉程式不刪除已成功安裝的影音元件，工作空間資料清理也不包含它。
+含元件版本優先使用程式內 `resources/ffmpeg/` 的已驗證 runtime；未內建的版本使用這個持久 runtime。關閉程式不刪除已成功安裝的影音元件，工作空間資料清理也不包含它。
 
 安裝器在發布安裝目錄前核對完整的固定檔案。有有效安裝時可驗證後結束；已有目錄內容不符時會報錯，不自行覆寫。下載、驗證或解壓失敗不會把未完成的安裝當成成功。完成後可重試原本的影音工作。
 
@@ -104,6 +104,7 @@ $env:UFRIEND_TEST_FFMPEG = (Resolve-Path -LiteralPath (Join-Path $ffmpegSource '
 | 命令 | 產物及 FFmpeg 處理 |
 | --- | --- |
 | `npm run package:portable` | 單一 Windows portable EXE。使用無內附 FFmpeg、無 OAuth 設定的資料夾包作為輸入，透過 electron-builder NSIS portable target 包裝；供使用者從設定頁安裝 runtime。 |
+| `npm run package:portable -- --with-ffmpeg` | 本機測試用單一 EXE，檔名為 `Portable-WithFFmpeg.exe`。內含固定 FFmpeg 與授權／來源文件，並在包裝前核對雜湊、版本、字幕濾鏡及編碼器；首次使用不需安裝影音元件。 |
 | `npm run package -- --without-ffmpeg` | 可供 ZIP 分發的資料夾包。附設定頁安裝器、CMD 入口、版本資訊及上游聲明，不附 FFmpeg 執行檔；無需開發用 FFmpeg 快取即可打包。 |
 | `npm run package` | 從已驗證的開發快取複製 runtime 的資料夾包，適合本機使用。打包前及複製後均進行校驗與功能探測。 |
 
@@ -115,6 +116,6 @@ UFriend 專案採 [MIT License](../../LICENSE)。固定 Gyan FFmpeg build 啟用
 
 [來源紀錄](../../scripts/runtime/ffmpeg/SOURCES.md)、完整上游 README 與 GPL 原文保留於 `scripts/runtime/ffmpeg/`。公開版本內的選用安裝器保留這些文件，安裝後與執行檔一起放入目的 runtime 目錄。`.gitattributes` 保留相關上游文字的原始位元組，以便核對雜湊。
 
-公開 EXE 與無 FFmpeg 的 ZIP 不重新分發該 FFmpeg 執行檔，使用者的安裝器直接向上游取得。若自行分發含 FFmpeg 的包，應依該元件的授權準備精確對應原始碼、外部函式庫、建置腳本及適用聲明；現有來源網址清單不等於完整 corresponding-source 包。
+預設公開 EXE 與無 FFmpeg 的 ZIP 不重新分發該 FFmpeg 執行檔，使用者的安裝器直接向上游取得。若自行分發含 FFmpeg 的包，應依該元件的授權準備精確對應原始碼、外部函式庫、建置腳本及適用聲明；現有來源網址清單不等於完整 corresponding-source 包。
 
 參考：[Gyan build 說明](https://www.gyan.dev/ffmpeg/builds/) · [FFmpeg 授權資訊](https://ffmpeg.org/legal.html) · [第三方聲明](../../THIRD_PARTY_NOTICES.md)

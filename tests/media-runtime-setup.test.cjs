@@ -83,10 +83,25 @@ test('failed owned-process shutdown blocks exit and remains retryable', async t 
   const second = f.service.shutdown(); f.children[2].emit('close', 0); f.children[0].emit('close', 1); await second; await rejected;
 });
 
-test('a persistent media runtime survives changing extraction paths and preserves legacy bundled fallback', t => {
+test('a persistent media runtime survives changing extraction paths in packages without a bundled runtime', t => {
   const f = fixture(t);
   assert.equal(resolveVideoFfmpegPath(f.options), path.join(f.options.resourcesPath, 'ffmpeg', 'ffmpeg.exe'));
   f.installBinary(); assert.equal(resolveVideoFfmpegPath(f.options), f.binary);
+  assert.throws(() => resolveVideoFfmpegPath({ ...f.options, userDataPath: 'relative' }), /absolute userDataPath/);
+});
+
+test('a bundled runtime is ready on first launch and takes precedence over an older persistent installation', t => {
+  const f = fixture(t), bundled = path.join(f.options.resourcesPath, 'ffmpeg', 'ffmpeg.exe');
+  fs.mkdirSync(path.dirname(bundled), { recursive: true });
+  fs.writeFileSync(bundled, 'Synthetic bundled binary; never executed.');
+  assert.equal(resolveVideoFfmpegPath(f.options), bundled);
+  assert.equal(f.service.snapshot().installed, true);
+  assert.equal(f.service.snapshot().bundled, true);
+  assert.equal(f.calls.length, 0);
+  f.installBinary();
+  assert.equal(resolveVideoFfmpegPath(f.options), bundled);
+  const laterResources = path.join(f.root, 'another-extraction');
+  assert.equal(resolveVideoFfmpegPath({ ...f.options, resourcesPath: laterResources }), f.binary);
   assert.throws(() => resolveVideoFfmpegPath({ ...f.options, userDataPath: 'relative' }), /absolute userDataPath/);
 });
 

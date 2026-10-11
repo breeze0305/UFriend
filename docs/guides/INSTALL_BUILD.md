@@ -12,7 +12,7 @@
 
 啟動器每次在獨立的 Windows 暫存目錄解壓程式，再開啟 UFriend。第一次出現視窗前可能需要等候解壓。工作資料與憑證不放在這個暫存目錄；系統匣的「重新啟動 UFriend」會再開啟原始 portable EXE。執行中請保留原始檔案，更新時先完全結束舊版，再使用新的 EXE。
 
-Windows 剪貼簿通知元件使用 .NET Framework 4.x 執行環境。單一 EXE 內含桌面執行環境，但不包含 FFmpeg 執行檔、AI 模型、模型服務或共用 Google OAuth client。
+Windows 剪貼簿通知元件使用 .NET Framework 4.x 執行環境。單一 EXE 內含桌面執行環境；目前公開下載版不包含 FFmpeg 執行檔、AI 模型、模型服務或共用 Google OAuth client。另可依下方建置流程製作內建 FFmpeg 的本機測試版 `Portable-WithFFmpeg.exe`。
 
 ### 選用影音元件
 
@@ -111,7 +111,7 @@ node scripts/prepare-ffmpeg.cjs --from $ffmpegSource
 $env:UFRIEND_TEST_FFMPEG = (Resolve-Path -LiteralPath (Join-Path $ffmpegSource 'bin/ffmpeg.exe')).Path
 ```
 
-`UFRIEND_TEST_FFMPEG` 供測試產生與檢查合成影音，使用解壓縮套件內相鄰的 `ffmpeg.exe` 與 `ffprobe.exe`；桌面開發版的實際匯出使用固定快取。已打包版本優先使用使用者資料目錄的 `media-runtime/ffmpeg/`，沒有時才使用該成品 `resources/ffmpeg/` 中的 runtime。打包器不會將 ffprobe 加入成品。重新開啟 PowerShell 後，測試前須再次設定此環境變數。
+`UFRIEND_TEST_FFMPEG` 供測試產生與檢查合成影音，使用解壓縮套件內相鄰的 `ffmpeg.exe` 與 `ffprobe.exe`；桌面開發版的實際匯出使用固定快取。已打包版本若內建 FFmpeg，優先使用該成品 `resources/ffmpeg/` 中經驗證的 runtime；未內建時使用使用者資料目錄的 `media-runtime/ffmpeg/`。打包器不會將 ffprobe 加入成品。重新開啟 PowerShell 後，測試前須再次設定此環境變數。
 
 ### 4. 啟動程式
 
@@ -180,7 +180,7 @@ npm run package:portable
 
 此命令先建立不內附 FFmpeg 的資料夾包，再以固定的 **electron-builder 26.17.0** 和 NSIS portable target 建置單一 EXE。首次建置需網路下載 NSIS 等建置工具；工具已有快取後可重用。命令不會代跑 `npm ci`、`build:native` 或完整測試，也不會上傳或發布 Release。
 
-公開 portable 輸入必須使用空白 OAuth 範本，不能含有 FFmpeg 執行檔。輸入若含 Google client 設定或不符合條件，建置會停止。一般工作資料、憑證、模型權重與三個 PC 模型服務不加入包內。
+所有 portable 輸入必須使用空白 OAuth 範本。預設模式不能含有 FFmpeg 執行檔；本機含元件模式須明確提供 `--with-ffmpeg`。輸入若含 Google client 設定或不符合條件，建置會停止。一般工作資料、憑證、模型權重與三個 PC 模型服務不加入包內。
 
 成功後輸出位置為：
 
@@ -192,6 +192,18 @@ local/releases/UFriend-<version>-portable-<timestamp>-<id>/
 
 版本取自 `package.json`，例如 `UFriend-0.1.39-Portable.exe`。命令會印出實際位置與 EXE 的 SHA-256；build receipt 記錄輸入檔案校驗、工具版本及成品資訊。單一 EXE 每次啟動使用獨立暫存目錄，執行中的工作空間與持久影音元件位於使用者資料目錄。
 
+### 內建 FFmpeg 的本機單一 EXE
+
+先準備並驗證固定 FFmpeg 快取，再執行：
+
+```powershell
+npm run package:portable -- --with-ffmpeg
+```
+
+產物為 `UFriend-<version>-Portable-WithFFmpeg.exe`，例如 `UFriend-0.1.40-Portable-WithFFmpeg.exe`，同樣放在 `local/releases/` 的獨立建置目錄。它內含已驗證的 FFmpeg、GPL 原文、上游 README 與來源資訊；首次開啟即可匯出字幕影片和準備雲端轉錄音訊，不需另裝 FFmpeg 或 7-Zip。設定頁會顯示「影音元件已內建，無需另外安裝」。AI 模型與 Gmail 授權仍需各自配置。
+
+內建工具跟著每次啟動解壓到暫存目錄，並優先於既有使用者資料目錄中的選用安裝；舊的選用安裝仍保留。這個模式供本機測試，公開再分發前須準備元件的完整對應原始碼與建置資料，見 [runtime 授權與來源紀錄](../development/FFMPEG_RUNTIME.md#授權與來源紀錄)。
+
 ### 資料夾包與 ZIP
 
 僅建立可供完整 ZIP 壓縮分發的資料夾包：
@@ -202,17 +214,18 @@ npm run package -- --without-ffmpeg
 
 這個模式不需要開發用 FFmpeg 快取，附有設定頁影音元件安裝器與 `Install media runtime.cmd`。命令本身產生資料夾，不直接建立 ZIP；若壓縮，須保留全部檔案與相對結構。完整影音測試仍需要前述 FFmpeg／ffprobe。
 
-若只在本機建立包含已準備 FFmpeg 的資料夾包，先完成固定 runtime 驗證，再執行 `npm run package`。這種包不能當成公開單一 EXE 的輸入。
+若只在本機建立包含已準備 FFmpeg 的資料夾包，先完成固定 runtime 驗證，再執行 `npm run package`。將這種包轉為單一 EXE 時，必須使用 `--with-ffmpeg`。
 
 資料夾包位於 `dist/UFriend-<version>/`；同版號資料夾已存在時使用帶建置時間的新目錄，實際位置以命令輸出為準。內含 `UFriend.exe` 與 `BUILD-INFO.json`，記錄版本、Electron、平台、正式依賴及影音 runtime 資訊。
 
 已有同版本最新驗證成功的資料夾包時，可依實際輸出路徑省略重建這一步：
 
 ```powershell
-npm run package:portable -- --prepackaged 'dist/UFriend-0.1.39'
+npm run package:portable -- --prepackaged 'dist/UFriend-0.1.40'
+# 若該資料夾包已含 FFmpeg，另加 --with-ffmpeg
 ```
 
-`--prepackaged` 僅接受 `dist/` 中符合 `package.json` 版本的最新成功包，並再次核對空白 OAuth、未內附 FFmpeg 與檔案完整性；請將示例路徑換成實際輸出位置。
+`--prepackaged` 僅接受 `dist/` 中符合 `package.json` 版本的最新成功包，並再次核對空白 OAuth、所選 FFmpeg 模式與檔案完整性；請將示例路徑換成實際輸出位置。
 
 ### 驗證與成品整理
 

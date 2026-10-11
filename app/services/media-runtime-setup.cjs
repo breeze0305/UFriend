@@ -22,6 +22,7 @@ class MediaRuntimeSetup {
     this.destinationRoot = path.join(userDataPath, 'media-runtime');
     this.installer = resourcesPath && path.join(resourcesPath, 'media-runtime-setup', 'install-media-runtime.ps1');
     this.supported = Boolean(isPackaged && this.installer && fs.existsSync(this.installer));
+    this.bundledExecutable = isPackaged && resourcesPath ? path.join(resourcesPath, 'ffmpeg', 'ffmpeg.exe') : null;
     this.resolveFfmpeg = resolveFfmpeg;
     this.onChange = onChange;
     this.spawnProcess = spawnProcess;
@@ -30,7 +31,9 @@ class MediaRuntimeSetup {
   }
 
   snapshot() {
-    return { available: this.supported, installed: fs.existsSync(this.resolveFfmpeg()), installing: Boolean(this.active), error: this.error };
+    const executable = this.resolveFfmpeg(), installed = fs.existsSync(executable);
+    const bundled = Boolean(installed && this.bundledExecutable && path.resolve(executable).toLowerCase() === path.resolve(this.bundledExecutable).toLowerCase());
+    return { available: this.supported, installed, bundled, installing: Boolean(this.active), error: this.error };
   }
 
   async install({ from } = {}) {

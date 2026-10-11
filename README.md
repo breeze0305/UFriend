@@ -8,7 +8,7 @@
 
 UFriend keeps your workspace on your computer and connects to separately configured local or cloud AI services. Review the original material alongside the result, edit it, and decide how to use it. The interface supports English and Traditional Chinese, with light, dark, and system themes.
 
-**Current version: 0.1.39 · Windows x64 · Electron 44**
+**Latest public release: 0.1.39 · Windows x64 · Electron 44**
 
 [Releases](https://github.com/breeze0305/UFriend/releases) · [Documentation](docs/README.md) · [使用手冊（繁體中文）](docs/guides/APP_README.md) · [Report an issue](https://github.com/breeze0305/UFriend/issues)
 
@@ -98,6 +98,14 @@ npm run package:portable
 ```
 
 This uses the pinned electron-builder 26.17.0 NSIS portable target. The first build needs network access to download its build tools. It creates and validates a folder package without FFmpeg or embedded OAuth settings, then writes `UFriend-<version>-Portable.exe` and its build receipt under `local/releases/UFriend-<version>-portable-<timestamp>-<id>/`. The verified folder package remains under `dist/`.
+
+For a local test build with FFmpeg already inside the single EXE, first prepare the pinned runtime, then run:
+
+```powershell
+npm run package:portable -- --with-ffmpeg
+```
+
+This creates `UFriend-<version>-Portable-WithFFmpeg.exe`. It needs no separate media-runtime installation or 7-Zip to run. Settings shows that the media runtime is included. A bundled runtime takes precedence over an older optional installation in user data. The executable includes the upstream license and provenance files. This build is intended for local use; before distributing the bundled GPL component, prepare its complete corresponding source as described in the [runtime guide](docs/development/FFMPEG_RUNTIME.md#授權與來源紀錄).
 
 To create only the folder package for ZIP distribution, use `npm run package -- --without-ffmpeg`. For a local folder package using the prepared FFmpeg runtime, use `npm run package`. Packaging does not run the full test suite or publish a release. See the [installation guide](docs/guides/INSTALL_BUILD.md) for isolated development data, UI smoke tests, prerequisites, and packaging details.
 

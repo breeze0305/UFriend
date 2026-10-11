@@ -6,11 +6,13 @@ const fs = require('node:fs');
 const path = require('node:path');
 const { portableOptions, inspectTree, assertPortableExecutable, buildPortable } = require('../scripts/package-portable.cjs');
 const config = require('../scripts/electron-builder-portable.json');
+const { pinnedRuntime } = require('../scripts/ffmpeg-runtime.cjs');
 
 const projectRoot = path.resolve(__dirname, '..');
 const windows = { skip: process.platform !== 'win32' || process.arch !== 'x64' };
-const version = '0.1.39';
+const version = require('../package.json').version;
 const artifactName = `UFriend-${version}-Portable.exe`;
+const bundledArtifactName = `UFriend-${version}-Portable-WithFFmpeg.exe`;
 
 function fixture(t) {
   const parent = path.join(projectRoot, '.test-data', 'portable-package');
@@ -57,22 +59,37 @@ function outputFromArgs(args) {
   return option.slice('--config.directories.output='.length);
 }
 
-function syntheticPortable(directory) {
+function syntheticPortable(directory, name = artifactName) {
   const bytes = Buffer.alloc(2048);
   bytes.write('MZ');
   bytes.writeUInt32LE(128, 0x3c);
   Buffer.from([0x50, 0x45, 0, 0]).copy(bytes, 128);
-  fs.writeFileSync(path.join(directory, artifactName), bytes);
+  fs.writeFileSync(path.join(directory, name), bytes);
+}
+
+function bundledFixture(t) {
+  const f = fixture(t), directory = path.join(f.input, 'resources', 'ffmpeg');
+  fs.mkdirSync(directory);
+  for (const name of Object.keys(pinnedRuntime.sha256)) fs.writeFileSync(path.join(directory, name), 'Synthetic pinned runtime fixture: ' + name);
+  fs.writeFileSync(path.join(directory, 'runtime.json'), JSON.stringify(pinnedRuntime));
+  const verified = { executable: path.join(directory, 'ffmpeg.exe'), version: pinnedRuntime.version, sha256: pinnedRuntime.sha256['ffmpeg.exe'], license: pinnedRuntime.license, sourceRevision: pinnedRuntime.sourceRevision, filters: ['ass', 'subtitles'], encoders: ['libx264', 'aac'] };
+  const { executable, ...metadata } = verified;
+  f.build.videoRuntime = { bundled: true, path: 'resources/ffmpeg/ffmpeg.exe', ...metadata };
+  fs.writeFileSync(path.join(f.input, 'BUILD-INFO.json'), JSON.stringify(f.build));
+  return { ...f, directory, verified };
 }
 
 function noCleanupReport(root) {
   return { keep: { name: path.basename(root) }, removed: [], skipped: [], ignored: [] };
 }
 
-test('portable CLI accepts only an optional explicit prepackaged folder', () => {
+test('portable CLI requires explicit bundled mode and accepts it with either prepackaged argument order', () => {
   assert.deepEqual(portableOptions([]), {});
-  assert.deepEqual(portableOptions(['--prepackaged', 'dist/UFriend-0.1.39']), { prepackaged: path.resolve('dist/UFriend-0.1.39') });
-  for (const args of [['--prepackaged'], ['--publish'], ['--prepackaged', '--publish'], ['--prepackaged', 'x', '--prepackaged', 'y']]) assert.throws(() => portableOptions(args), /Usage/);
+  const input = `dist/UFriend-${version}`;
+  assert.deepEqual(portableOptions(['--prepackaged', input]), { prepackaged: path.resolve(input) });
+  assert.deepEqual(portableOptions(['--with-ffmpeg']), { withFfmpeg: true });
+  for (const args of [['--with-ffmpeg', '--prepackaged', input], ['--prepackaged', input, '--with-ffmpeg']]) assert.deepEqual(portableOptions(args), { withFfmpeg: true, prepackaged: path.resolve(input) });
+  for (const args of [['--prepackaged'], ['--publish'], ['--prepackaged', '--publish'], ['--prepackaged', 'x', '--prepackaged', 'y'], ['--with-ffmpeg', '--with-ffmpeg'], ['--with-ffmpeg', 'yes']]) assert.throws(() => portableOptions(args), /Usage/);
 });
 
 test('portable configuration validates against the pinned builder schema', async () => {
@@ -122,7 +139,91 @@ test('successful wrapping preserves the verified input and prior release, then e
   assert.equal(result.receipt.source.fileCount, before.fileCount);
   assert.equal(result.receipt.artifact.sha256, assertPortableExecutable(result.executable).sha256);
   assert.equal(result.receipt.unpackDirectory, 'unique-per-launch');
+  assert.equal(result.receipt.bundledFfmpeg, false);
   assert.equal(fs.readFileSync(path.join(f.oldRelease, 'keep.exe'), 'utf8'), 'Existing release must survive.');
+});
+
+test('bundled wrapping verifies the fixed runtime, preserves input and records its provenance under a distinct artifact name', windows, t => {
+  const f = bundledFixture(t), before = inspectTree(f.input);
+  let inspected = 0, built = false;
+  const result = buildPortable({ root: f.root, prepackaged: f.input, withFfmpeg: true,
+    inspectRuntime: (...args) => { assert.deepEqual(args, [f.directory]); inspected++; return f.verified; },
+    buildFolder: () => assert.fail('Existing bundled input must not be rebuilt.'),
+    runBuilder: (_command, args) => {
+      assert.equal(inspected, 1);
+      assert(args.includes('--config.artifactName=' + bundledArtifactName));
+      assert.equal(args[args.indexOf('--publish') + 1], 'never');
+      syntheticPortable(outputFromArgs(args), bundledArtifactName); built = true; return { status: 0 };
+    },
+    prune: () => { assert.equal(built, true); return noCleanupReport(f.input); },
+  });
+  assert.equal(path.basename(result.executable), bundledArtifactName);
+  assert.equal(result.receipt.bundledFfmpeg, true);
+  assert.equal(result.receipt.videoRuntime.version, pinnedRuntime.version);
+  assert.equal(result.receipt.videoRuntime.sha256, pinnedRuntime.sha256['ffmpeg.exe']);
+  assert.equal(result.receipt.videoRuntime.license, pinnedRuntime.license);
+  assert.equal(result.receipt.videoRuntime.sourceRevision, pinnedRuntime.sourceRevision);
+  assert.deepEqual(result.receipt.videoRuntime.upstreamArchive, pinnedRuntime.archive);
+  assert.equal(result.receipt.videoRuntime.executable, undefined, 'Receipt must not contain an absolute runtime source path.');
+  assert.equal(inspectTree(f.input).sha256, before.sha256);
+  assert(fs.existsSync(path.join(f.oldRelease, 'keep.exe')));
+});
+
+test('bundled default build includes FFmpeg and still defers all cleanup on wrapper failure', windows, t => {
+  const f = bundledFixture(t);
+  let verified = false;
+  assert.throws(() => buildPortable({ root: f.root, withFfmpeg: true,
+    buildFolder: options => { assert.deepEqual(options, { withoutFfmpeg: false, prune: false }); return { outputRoot: f.input }; },
+    inspectRuntime: directory => { assert.equal(directory, f.directory); verified = true; return f.verified; },
+    runBuilder: () => { assert.equal(verified, true); return { status: 1 }; },
+    prune: () => assert.fail('A failed bundled wrapper must preserve all prior releases.'),
+  }), /builder failed/);
+  assert(fs.existsSync(path.join(f.oldRelease, 'keep.exe')));
+});
+
+test('bundle mode must match metadata and rejects missing, misplaced or duplicate runtime binaries before verification', windows, t => {
+  for (const mode of ['default-with-bundle', 'flag-without-bundle', 'missing', 'misplaced', 'duplicate', 'wrong-metadata-path']) {
+    const f = mode === 'flag-without-bundle' ? fixture(t) : bundledFixture(t);
+    if (mode === 'missing') fs.unlinkSync(path.join(f.directory, 'ffmpeg.exe'));
+    if (mode === 'misplaced') fs.renameSync(path.join(f.directory, 'ffmpeg.exe'), path.join(f.input, 'ffmpeg.exe'));
+    if (mode === 'duplicate') fs.writeFileSync(path.join(f.input, 'ffmpeg.exe'), 'Extra binary');
+    if (mode === 'wrong-metadata-path') { f.build.videoRuntime.path = 'ffmpeg.exe'; fs.writeFileSync(path.join(f.input, 'BUILD-INFO.json'), JSON.stringify(f.build)); }
+    assert.throws(() => buildPortable({ root: f.root, prepackaged: f.input, withFfmpeg: mode !== 'default-with-bundle',
+      inspectRuntime: () => assert.fail('Invalid binary placement or mode must fail before executable verification.'),
+      runBuilder: () => assert.fail('Invalid bundled input must never reach the builder.'),
+      prune: () => assert.fail('Invalid bundled input cannot prune releases.'),
+    }), /bundle metadata|exactly one FFmpeg/);
+    assert(fs.existsSync(path.join(f.oldRelease, 'keep.exe')));
+  }
+});
+
+test('real pinned verifier rejects a synthetic binary hash without executing it or invoking the wrapper', windows, t => {
+  const f = bundledFixture(t);
+  assert.throws(() => buildPortable({ root: f.root, prepackaged: f.input, withFfmpeg: true,
+    runBuilder: () => assert.fail('A runtime hash mismatch must never reach the builder.'),
+    prune: () => assert.fail('A runtime hash mismatch must preserve releases.'),
+  }), /FFmpeg runtime SHA-256 mismatch/);
+  assert(fs.existsSync(path.join(f.oldRelease, 'keep.exe')));
+});
+
+test('bundled runtime verification failures, metadata mismatch and OAuth never produce a release', windows, t => {
+  for (const mode of ['license', 'capability', 'metadata', 'oauth']) {
+    const f = bundledFixture(t);
+    if (mode === 'metadata') { f.build.videoRuntime.version = 'wrong-version'; fs.writeFileSync(path.join(f.input, 'BUILD-INFO.json'), JSON.stringify(f.build)); }
+    if (mode === 'oauth') fs.writeFileSync(path.join(f.runtime, 'app', 'config', 'google-oauth.json'), JSON.stringify({ clientSecret: 'synthetic-secret' }));
+    assert.throws(() => buildPortable({ root: f.root, prepackaged: f.input, withFfmpeg: true,
+      inspectRuntime: directory => {
+        assert.equal(directory, f.directory);
+        if (mode === 'license') throw new Error('FFmpeg runtime SHA-256 mismatch: COPYING.GPLv3.txt');
+        if (mode === 'capability') throw new Error('FFmpeg runtime is missing the H.264 or AAC encoder.');
+        if (mode === 'oauth') assert.fail('OAuth must be rejected before runtime verification.');
+        return f.verified;
+      },
+      runBuilder: () => assert.fail('Unverified runtime must never reach the wrapper.'),
+      prune: () => assert.fail('Unverified runtime cannot trigger cleanup.'),
+    }), /COPYING.GPLv3|missing the H.264|metadata differs|contains OAuth/);
+    assert(fs.existsSync(path.join(f.oldRelease, 'keep.exe')));
+  }
 });
 
 test('builder failure preserves earlier releases and leaves no completion receipt or cleanup', windows, t => {

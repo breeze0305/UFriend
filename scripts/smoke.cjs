@@ -230,6 +230,10 @@ async function run({app, win, core, actions, dataDir, diagnostics, videoExports,
         finish();await uiWait('Media runtime ready',()=>document.querySelector('#media-runtime-status')?.textContent==='影音元件已就緒。'&&document.querySelector('[data-action="media-runtime-download"]').disabled);
         await actions['settings.save']({uiLanguage:'en'});
         await uiWait('English media runtime controls',()=>document.querySelector('#media-runtime-status')?.textContent==='The media runtime is ready.'&&document.querySelector('[data-action="media-runtime-help"]')?.textContent.includes('Media runtime instructions'));
+        state.bundled=true;mediaRuntime.onChange();
+        await uiWait('Bundled runtime needs no installation controls',()=>document.querySelector('#media-runtime-status')?.textContent==='The media runtime is included. No separate installation is needed.'&&!document.querySelector('[data-action="media-runtime-download"]')&&!document.querySelector('[data-action="media-runtime-folder"]')&&!document.querySelector('#media-runtime-settings')?.textContent.includes('7-Zip'));
+        await actions['settings.save']({uiLanguage:'zh-TW'});
+        await uiWait('Bundled runtime Chinese status',()=>document.querySelector('#media-runtime-status')?.textContent==='影音元件已內建，無需另外安裝。');
       }finally{
         finish?.();mediaRuntime.snapshot=originalSnapshot;actions['mediaRuntime.install']=originalInstall;
         await actions['settings.save']({uiLanguage:'zh-TW'});mediaRuntime.onChange();

@@ -2,6 +2,8 @@
   'use strict';
   const entries = {
     "影音元件": "Media runtime",
+    "此版本內含 FFmpeg，可直接匯出字幕影片與處理雲端語音轉錄的音訊。": "This version includes FFmpeg for captioned-video export and audio preparation for cloud speech transcription.",
+    "影音元件已內建，無需另外安裝。": "The media runtime is included. No separate installation is needed.",
     "匯出字幕影片與雲端語音轉錄需要 FFmpeg；只安裝一次，更新程式後仍可用。": "Captioned-video export and cloud speech require FFmpeg. Install it once; it remains available after app updates.",
     "自動下載需要 7-Zip，也可選取已解壓的官方套件。": "Automatic download requires 7-Zip. You can also select an extracted official package.",
     "正在下載與驗證影音元件…": "Downloading and verifying the media runtime…",

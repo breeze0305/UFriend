@@ -5,6 +5,7 @@ const path = require('node:path');
 const { createHash, randomUUID } = require('node:crypto');
 const { spawnSync } = require('node:child_process');
 const { packageApp } = require('./package.cjs');
+const { inspectFfmpegRuntime, pinnedRuntime } = require('./ffmpeg-runtime.cjs');
 const { inspectPackages, latestPackage, prunePackages, withDistLock, printReport } = require('./package-retention.cjs');
 const builderConfig = require('./electron-builder-portable.json');
 
@@ -13,11 +14,18 @@ const builderVersion = '26.17.0';
 const samePath = (left, right) => process.platform === 'win32' ? left.toLowerCase() === right.toLowerCase() : left === right;
 
 function portableOptions(args) {
-  if (!args.length) return {};
-  if (args.length === 2 && args[0] === '--prepackaged' && args[1].trim() && !args[1].startsWith('--')) {
-    return { prepackaged: path.resolve(args[1]) };
+  const options = {};
+  for (let index = 0; index < args.length; index++) {
+    if (args[index] === '--with-ffmpeg' && options.withFfmpeg === undefined) {
+      options.withFfmpeg = true;
+    } else if (args[index] === '--prepackaged' && options.prepackaged === undefined
+        && typeof args[index + 1] === 'string' && args[index + 1].trim() && !args[index + 1].startsWith('--')) {
+      options.prepackaged = path.resolve(args[++index]);
+    } else {
+      throw new Error('Usage: node scripts/package-portable.cjs [--with-ffmpeg] [--prepackaged dist/UFriend-X.Y.Z]');
+    }
   }
-  throw new Error('Usage: node scripts/package-portable.cjs [--prepackaged dist/UFriend-X.Y.Z]');
+  return options;
 }
 
 function realDirectory(directory) {
@@ -67,7 +75,8 @@ function inspectTree(directory) {
   };
 }
 
-function validatePrepackaged(root, input, manifest) {
+function validatePrepackaged(root, input, manifest, { withFfmpeg = false, inspectRuntime = inspectFfmpegRuntime } = {}) {
+  if (typeof withFfmpeg !== 'boolean') throw new Error('withFfmpeg must be an explicit boolean.');
   const dist = path.join(root, 'dist');
   const latest = latestPackage(inspectPackages(dist).packages);
   if (!latest || !samePath(latest.path, input) || latest.version !== manifest.version) {
@@ -75,19 +84,42 @@ function validatePrepackaged(root, input, manifest) {
   }
   const build = JSON.parse(fs.readFileSync(realFile(path.join(input, 'BUILD-INFO.json')), 'utf8'));
   if (build.platform !== 'win32' || build.architecture !== 'x64' || build.signed !== false
-      || build.gmailConfigured !== false || build.videoRuntime?.bundled !== false) {
-    throw new Error('The public portable input must be an unsigned Windows x64 package without bundled OAuth or FFmpeg.');
+      || build.gmailConfigured !== false) {
+    throw new Error('The portable input must be an unsigned Windows x64 package without bundled OAuth.');
   }
+  if (build.videoRuntime?.bundled !== withFfmpeg) throw new Error('FFmpeg bundle metadata does not match the selected mode; use --with-ffmpeg only for a bundled input.');
   const config = JSON.parse(fs.readFileSync(realFile(path.join(input, 'resources', 'app', 'app', 'config', 'google-oauth.json')), 'utf8'));
   if (config.clientId || config.clientSecret) throw new Error('The portable input contains OAuth settings; no public EXE was built.');
   const sourceTree = inspectTree(input);
-  if (sourceTree.files.some(file => path.basename(file.path).toLowerCase() === 'ffmpeg.exe')) {
-    throw new Error('The public portable input unexpectedly contains ffmpeg.exe.');
+  const binaries = sourceTree.files.filter(file => path.basename(file.path).toLowerCase() === 'ffmpeg.exe');
+  let videoRuntime;
+  if (withFfmpeg) {
+    const relative = 'resources/ffmpeg/ffmpeg.exe';
+    if (binaries.length !== 1 || binaries[0].path !== relative || build.videoRuntime.path !== relative) {
+      throw new Error('A bundled portable input must contain exactly one FFmpeg executable at resources/ffmpeg/ffmpeg.exe.');
+    }
+    // The default inspector verifies the pinned manifest, every binary/notice
+    // hash, exact version/configuration, libass filters and H.264/AAC encoders.
+    const { executable, ...verified } = inspectRuntime(path.join(input, 'resources', 'ffmpeg'));
+    if (!samePath(executable, path.join(input, ...relative.split('/')))) throw new Error('The verified FFmpeg executable does not match the bundled runtime path.');
+    for (const name of ['version', 'sha256', 'license', 'sourceRevision', 'filters', 'encoders']) {
+      if (JSON.stringify(verified[name]) !== JSON.stringify(build.videoRuntime[name])) {
+        throw new Error('Bundled FFmpeg metadata differs from the verified runtime: ' + name);
+      }
+    }
+    videoRuntime = {
+      bundled: true, path: relative, ...verified,
+      publisher: pinnedRuntime.publisher, publisherUrl: pinnedRuntime.publisherUrl,
+      upstreamArchive: { ...pinnedRuntime.archive },
+    };
+  } else {
+    if (binaries.length) throw new Error('The public portable input unexpectedly contains ffmpeg.exe.');
+    videoRuntime = { ...build.videoRuntime };
   }
   for (const notice of ['LICENSE', 'LICENSES.chromium.html', 'LICENSE.UFriend.txt', 'THIRD_PARTY_NOTICES.md']) {
     realFile(path.join(input, notice));
   }
-  return { build, sourceTree };
+  return { build, sourceTree, videoRuntime };
 }
 
 function assertPortableExecutable(file) {
@@ -116,8 +148,9 @@ function builderEnvironment() {
   return env;
 }
 
-function buildPortable({ prepackaged, root = projectRoot, runBuilder = spawnSync, buildFolder = packageApp, prune = prunePackages } = {}) {
+function buildPortable({ prepackaged, withFfmpeg = false, root = projectRoot, runBuilder = spawnSync, buildFolder = packageApp, prune = prunePackages, inspectRuntime = inspectFfmpegRuntime } = {}) {
   if (process.platform !== 'win32' || process.arch !== 'x64') throw new Error('Build the portable EXE on Windows x64.');
+  if (typeof withFfmpeg !== 'boolean') throw new Error('withFfmpeg must be an explicit boolean.');
   root = path.resolve(root);
   realDirectory(root);
   const manifest = JSON.parse(fs.readFileSync(realFile(path.join(root, 'package.json')), 'utf8'));
@@ -136,8 +169,8 @@ function buildPortable({ prepackaged, root = projectRoot, runBuilder = spawnSync
   if (builderConfig.portable.unpackDirName !== true || builderConfig.portable.useZip !== true) {
     throw new Error('Portable launch isolation and immutable prepackaged input must remain enabled.');
   }
-  const input = prepackaged ? path.resolve(prepackaged) : buildFolder({ withoutFfmpeg: true, prune: false }).outputRoot;
-  const { build, sourceTree } = validatePrepackaged(root, input, manifest);
+  const input = prepackaged ? path.resolve(prepackaged) : buildFolder({ withoutFfmpeg: !withFfmpeg, prune: false }).outputRoot;
+  const { build, sourceTree, videoRuntime } = validatePrepackaged(root, input, manifest, { withFfmpeg, inspectRuntime });
   const releases = path.join(root, 'local', 'releases');
   for (const directory of [path.join(root, 'local'), releases]) {
     if (!fs.existsSync(directory)) fs.mkdirSync(directory);
@@ -146,13 +179,14 @@ function buildPortable({ prepackaged, root = projectRoot, runBuilder = spawnSync
   // Fresh output is a sibling of every previous release, never inside the input.
   // Failed staging directories are retained for diagnosis and have no receipt.
   const stamp = new Date().toISOString().replace(/[-:]/g, '').replace('T', '-').replace('.', '-').replace('Z', '');
-  const buildName = `UFriend-${manifest.version}-portable-${stamp}-${randomUUID().slice(0, 8)}`;
+  const buildName = `UFriend-${manifest.version}-portable${withFfmpeg ? '-with-ffmpeg' : ''}-${stamp}-${randomUUID().slice(0, 8)}`;
   const staging = path.join(releases, '.' + buildName + '.building');
   const output = path.join(releases, buildName);
   fs.mkdirSync(staging);
-  const artifactName = `UFriend-${manifest.version}-Portable.exe`;
+  const artifactName = `UFriend-${manifest.version}-Portable${withFfmpeg ? '-WithFFmpeg' : ''}.exe`;
   const args = [cli, '--win', 'portable', '--x64', '--prepackaged', input,
-    '--config', configFile, '--config.directories.output=' + staging, '--publish', 'never'];
+    '--config', configFile, '--config.directories.output=' + staging,
+    '--config.artifactName=' + artifactName, '--publish', 'never'];
   const result = runBuilder(process.execPath, args, {
     cwd: root, env: builderEnvironment(), windowsHide: true, stdio: 'inherit',
   });
@@ -165,7 +199,7 @@ function buildPortable({ prepackaged, root = projectRoot, runBuilder = spawnSync
     electron: build.electron, architecture: 'x64', signed: false,
     artifact: { name: artifactName, ...artifact },
     source: { directory: path.relative(root, input).split(path.sep).join('/'), fileCount: sourceTree.fileCount, bytes: sourceTree.bytes, sha256: sourceTree.sha256 },
-    unpackDirectory: 'unique-per-launch', bundledOAuth: false, bundledFfmpeg: false,
+    unpackDirectory: 'unique-per-launch', bundledOAuth: false, bundledFfmpeg: withFfmpeg, videoRuntime,
   };
   fs.writeFileSync(path.join(staging, 'PORTABLE-BUILD-INFO.json'), JSON.stringify(receipt, null, 2) + '\n', { flag: 'wx' });
   realDirectory(releases);
