@@ -6,13 +6,30 @@
 
 [English](README.md) | [繁體中文](README.zh-TW.md)
 
-**在 Windows 上集中處理郵件、錄音、圖片文字與日常寫作。**
+**以 ASUS UGen300 本地運算為主要設計方向的 Windows AI 工作空間。**
 
-UFriend 將工作資料保存在你的電腦，並連接另外設定的本地或雲端 AI 服務。你可以對照原始素材與處理結果、編輯內容，再決定如何使用。介面支援英文與繁體中文，以及淺色、深色和跟隨系統的佈景主題。
+UFriend 將郵件、錄音、圖片文字與日常寫作整合在同一個本機工作空間，並以 **ASUS UGen300** 為主要目標硬體：讓專用 USB AI 加速器成為日常使用的桌面助理。你可以對照原始素材與各項處理結果、編輯內容，再決定如何使用。介面支援英文與繁體中文，以及淺色、深色和跟隨系統的佈景主題。
 
 **版本：0.1.41 · Windows x64 · Electron 44**
 
 [下載版本](https://github.com/breeze0305/UFriend/releases) · [文件導覽](docs/README.zh-TW.md) · [使用手冊](docs/guides/APP_README.zh-TW.md) · [回報問題](https://github.com/breeze0305/UFriend/issues)
+
+## 以 ASUS UGen300 為核心的設計
+
+UGen300 是 UFriend 的主要目標硬體平台。預期使用方式是搭配相容模型與本機服務，讓使用者透過熟悉的桌面工作流程使用 AI 加速器。
+
+| 設計重點 | 預期效益 |
+| --- | --- |
+| 本地處理資料 | 讓支援的文字、圖片與語音任務在連接的加速器上處理，模型輸入保留在使用者自己的電腦與裝置。 |
+| 低功耗 AI 加速 | 由專用 AI 處理器執行支援的推論工作，搭配適合日常桌面使用的硬體功耗。 |
+| 分擔主機負載 | 將支援的模型推論交給加速器及其專用記憶體，電腦負責介面、檔案與任務協調。 |
+| 整合日常工作 | 將本地 AI 帶入郵件整理、OCR、逐字稿、翻譯與寫作，讓使用者在同一套工作空間完成操作。 |
+
+ASUS 公布的 UGen300 USB 型號搭載 Hailo-10H 處理器、**8 GB LPDDR4**，提供最高 **40 TOPS（INT4）** 算力與 **2.5 W 典型功耗**。這些是廠商公布的加速器規格；UFriend 的模型相容性、延遲、處理量與整機功耗仍須實機量測。來源見 [ASUS 官方產品頁](https://www.asus.com/tw/motherboards-components/ai-accelerator/ugen/ugen300-usb-8g/)。
+
+**目前實作進度：**桌面工作流程已可透過另外設定的 PC 模型服務或雲端 API 使用。UGen300 裝置後端與 Hailo SDK 整合仍待完成，選擇預留的 UGen300 選項尚不會在裝置上執行推論；裝置池的時間模擬也不會執行模型推論。整合介面與後續工作見[模型介接說明](app/models/README.zh-TW.md#後續-ugen300)。
+
+目前文字、OCR 與語音皆預設採本地處理，任務失敗也不會自動改送雲端。Gmail、郵件外部圖片與使用者明確選用的雲端 AI 仍會連網，詳見[模型來源與資料流向](docs/guides/MODEL_SOURCES.zh-TW.md)。
 
 ## 功能
 
@@ -121,6 +138,7 @@ flowchart LR
     Main --> Data[本機工作空間與加密憑證]
     Main --> Gmail[Gmail API]
     Main --> Local[獨立的本地 LLM / OCR / 語音服務]
+    Main -. 規劃中 .-> UGen[UGen300 / Hailo 本機服務]
     Main --> Cloud[設定的雲端 API]
     Main --> FFmpeg[本機 FFmpeg 程序]
 ```
@@ -130,7 +148,7 @@ flowchart LR
 - 雲端任務會把必要輸入傳到設定的端點。對話包含目前對話歷史；啟用的個人背景只會加入適用的文字任務。供應商的資料保存及收費方式依其規定。
 - 模型輸出不會自行寄信、刪除郵件、建立行事曆事件或執行程式。
 
-UGen300 整合尚未實作，也未在硬體上驗證。介面中的裝置池時間模擬不會執行模型推論。目前也不支援 Outlook、Yahoo 與行事曆整合。
+圖中的 UGen300 虛線代表規劃中的硬體後端，詳見[以 ASUS UGen300 為核心的設計](#以-asus-ugen300-為核心的設計)。目前也不支援 Outlook、Yahoo 與行事曆整合。
 
 ## 文件與專案檔案
 

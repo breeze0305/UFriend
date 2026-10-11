@@ -6,13 +6,30 @@
 
 [English](README.md) | [繁體中文](README.zh-TW.md)
 
-**A Windows workspace for email, recordings, image text, and everyday writing.**
+**A Windows AI workspace designed primarily for ASUS UGen300 local computing.**
 
-UFriend keeps your workspace on your computer and connects to separately configured local or cloud AI services. Review the original material alongside the result, edit it, and decide how to use it. The interface supports English and Traditional Chinese, with light, dark, and system themes.
+UFriend brings email, recordings, image text, and everyday writing into one local workspace. Its primary hardware target is **ASUS UGen300**: the goal is to turn a dedicated USB AI accelerator into an everyday desktop assistant. Review the original material alongside each result, edit it, and decide how to use it. The interface supports English and Traditional Chinese, with light, dark, and system themes.
 
 **Version: 0.1.41 · Windows x64 · Electron 44**
 
 [Releases](https://github.com/breeze0305/UFriend/releases) · [Documentation](docs/README.md) · [User manual](docs/guides/APP_README.md) · [Report an issue](https://github.com/breeze0305/UFriend/issues)
+
+## Designed for ASUS UGen300
+
+UGen300 is the main hardware platform UFriend is designed around. The intended experience pairs the accelerator with compatible models and a local service, so users can work with AI through familiar desktop workflows.
+
+| Design focus | Intended benefit |
+| --- | --- |
+| Local data processing | Process supported text, image, and speech tasks on the connected accelerator, keeping model inputs on the user's computer and device. |
+| Low-power AI acceleration | Use a dedicated AI processor for supported inference workloads, with hardware power consumption suited to everyday desktop use. |
+| Reduced host workload | Move supported model inference to the accelerator and its dedicated memory, while the PC handles the interface, files, and task coordination. |
+| One practical workspace | Bring local AI into email organization, OCR, transcription, translation, and writing without requiring users to manage a separate interface for each workflow. |
+
+ASUS lists the UGen300 USB model with a Hailo-10H processor, **8 GB LPDDR4**, up to **40 TOPS (INT4)**, and **2.5 W typical power consumption**. These are the manufacturer's accelerator specifications; UFriend's model compatibility, latency, throughput, and total-system power still require hardware measurement. See the [ASUS product page](https://www.asus.com/motherboards-components/ai-accelerator/ugen/ugen300-usb-8g/).
+
+**Current implementation:** The desktop workflows are available through separately configured PC model services or cloud APIs. The UGen300 device backend and Hailo SDK integration are still pending; selecting the reserved UGen300 option does not yet run inference on the device. Device-pool timing simulations do not perform model inference. See the [integration contract and next steps](app/models/README.md#future-ugen300-integration).
+
+Local processing is already the default for text, OCR, and speech, and failed tasks do not automatically switch to the cloud. Gmail, external email images, and explicitly selected cloud AI still use network connections. See [model sources and data flows](docs/guides/MODEL_SOURCES.md).
 
 ## Features
 
@@ -121,6 +138,7 @@ flowchart LR
     Main --> Data[Local workspace and encrypted credentials]
     Main --> Gmail[Gmail API]
     Main --> Local[Independent local LLM / OCR / speech services]
+    Main -. planned .-> UGen[UGen300 / Hailo local service]
     Main --> Cloud[Configured cloud API]
     Main --> FFmpeg[Local FFmpeg process]
 ```
@@ -130,7 +148,7 @@ flowchart LR
 - Cloud tasks send the necessary input to the configured endpoint. Chat includes the current conversation history; enabled profile context is included only in the applicable text tasks. Provider retention and charges depend on the provider.
 - Model output does not independently send mail, delete messages, create calendar events, or execute programs.
 
-UGen300 integration is not implemented or verified on hardware. Device-pool timing simulations in the interface do not perform model inference. Outlook, Yahoo, and calendar integrations are also outside the current supported scope.
+The dashed UGen300 path shows the planned hardware backend described in [Designed for ASUS UGen300](#designed-for-asus-ugen300). Outlook, Yahoo, and calendar integrations are also outside the current supported scope.
 
 ## Documentation and project files
 

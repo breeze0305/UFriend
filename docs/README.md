@@ -9,6 +9,7 @@ Each project guide has separate English (`.md`) and Traditional Chinese (`.zh-TW
 | Overview | English | 繁體中文 |
 | --- | --- | --- |
 | Features, quick start, architecture, and project layout | [Project README](../README.md) | [專案導覽](../README.zh-TW.md) |
+| UGen300 local AI design goals, hardware context, and integration status | [Designed for ASUS UGen300](../README.md#designed-for-asus-ugen300) | [UGen300 本地 AI 設計](../README.zh-TW.md#以-asus-ugen300-為核心的設計) |
 
 ## User guides
 

@@ -9,6 +9,7 @@
 | 導覽 | English | 繁體中文 |
 | --- | --- | --- |
 | 功能、快速開始、架構與專案目錄 | [Project README](../README.md) | [專案導覽](../README.zh-TW.md) |
+| UGen300 本地 AI 設計目標、硬體資訊與整合進度 | [Designed for ASUS UGen300](../README.md#designed-for-asus-ugen300) | [UGen300 本地 AI 設計](../README.zh-TW.md#以-asus-ugen300-為核心的設計) |
 
 ## 使用指南
 
