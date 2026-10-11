@@ -28,7 +28,9 @@ yarn-error.log*
 /docs/product/
 /docs/development/*
 !/docs/development/FFMPEG_RUNTIME.md
+!/docs/development/FFMPEG_RUNTIME.zh-TW.md
 !/docs/development/MEDIA_RUNTIME_BUILD.md
+!/docs/development/MEDIA_RUNTIME_BUILD.zh-TW.md
 
 # Keep only the artwork required by the icon build
 /design/logo-options/*

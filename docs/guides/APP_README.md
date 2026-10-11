@@ -1,183 +1,185 @@
-# UFriend 使用說明
+# UFriend user guide
 
-UFriend 是 Windows 桌面助手，整合郵件、會議逐字稿、OCR 與本機 LLM 工作流程。初次開啟為空白工作空間，不帶入示範內容。
+[English](APP_README.md) | [繁體中文](APP_README.zh-TW.md)
 
-安裝成品、準備環境或從原始碼編譯，請先閱讀[安裝與編譯指南](INSTALL_BUILD.md)。模型工作可以逐次選擇本地或雲端，見[模型來源指南](MODEL_SOURCES.md)；本地服務的環境見 [PC 模型指南](PC_MODELS.md)。
+UFriend is a Windows desktop assistant that brings together email, meeting transcripts, OCR, and local LLM workflows. It opens with an empty workspace and no demonstration content.
 
-## 開啟程式
+For a packaged release, environment setup, or building from source, start with the [installation and build guide](INSTALL_BUILD.md). You can choose local or cloud processing for each model task; see the [model sources guide](MODEL_SOURCES.md). Local service requirements are covered in the [PC models guide](PC_MODELS.md).
 
-下載並雙擊 UFriend 的 Windows EXE，不需安裝或手動解壓，也不需另外安裝 FFmpeg 或 7-Zip。啟動器每次會在獨立暫存資料夾展開程式，工作資料與憑證仍保存在 Windows 使用者資料目錄。請保留原始 EXE，系統匣的重新啟動會從它開啟；不要在程式執行中移動或替換它。
+## Opening the app
 
-若使用資料夾／ZIP 版本，請完整解壓後執行 `UFriend.exe`，保留相鄰的 DLL、`resources` 及授權檔。下載與更新方式見[安裝與編譯指南](INSTALL_BUILD.md)。
+Download and double-click the UFriend Windows EXE. No installation, manual extraction, separate FFmpeg installation, or 7-Zip installation is required. On each launch, the launcher extracts the app into a separate temporary folder. Your work and credentials remain in the Windows user data directory. Keep the original EXE: restarting from the system tray launches that file. Do not move or replace it while the app is running.
 
-**開啟新版前，先右鍵系統匣中的舊版 UFriend →「結束 UFriend」。**只關閉視窗通常仍在背景執行；程式限制同時一個實例，舊版未結束時按新 EXE 可能只回到舊版視窗。更新不需要刪除自己的工作資料。
+For a folder or ZIP release, extract the entire package before running `UFriend.exe`, and keep the adjacent DLLs, `resources` folder, and license files. See the [installation and build guide](INSTALL_BUILD.md) for downloads and updates.
 
-- 左上 UFriend 回首頁；設定在左下。
-- 預設關閉視窗會留在系統匣。右鍵圖示可「開啟 UFriend」「重新啟動 UFriend」或「結束 UFriend」。重新啟動先保存工作草稿及停止工作，再開啟同一版本；設定 → 一般可取消背景保留。
-- 自動接收剪貼簿圖片預設關閉。在 OCR 頁啟用後，程式會接收之後出現的新圖片；只讀新圖片，不在啟動時擷取既有剪貼簿。
-- 本機資料預設在 `%APPDATA%\UFriend\workspace`。設定 → 一般 →「開啟資料位置」可查看實際位置。
+**Before opening a new version, right-click the old UFriend system tray icon and choose “Quit UFriend.”** Closing the window normally leaves the app running in the background. Only one instance can run at a time, so launching the new EXE while the old version is running may simply bring the old window forward. You do not need to delete your work data when updating.
 
-## 設定分類
+- Click UFriend at the top left to return to the home page. Settings is at the bottom left.
+- By default, closing the window leaves the app in the system tray. Right-click its icon to choose “Open UFriend,” “Restart UFriend,” or “Quit UFriend.” Restarting saves working drafts and stops tasks before opening the same version again. You can disable background operation in Settings → General.
+- Automatic clipboard image capture is off by default. After you enable it on the OCR page, the app receives new clipboard images. It only reads new images and does not capture an image already on the clipboard at startup.
+- Local data is stored in `%APPDATA%\UFriend\workspace` by default. Settings → General → “Open data folder” shows the actual location.
 
-從左下開啟「設定」，再用固定的第二層選單選擇分類；捲動內容時仍可切換分類。視窗較窄或較矮時，六個分類改列在內容上方。選單支援方向鍵與 Home／End 切換。憑證需要處理時，提示會顯示於分類內容上方。
+## Settings categories
 
-| 分類 | 內容 |
+Open Settings at the bottom left, then choose a category from the fixed second-level menu. You can switch categories while scrolling the content. In a narrower or shorter window, the six categories appear above the content instead. The menu supports the arrow keys and Home/End. When credentials need attention, a notice appears above the category content.
+
+| Category | Contents |
 | --- | --- |
-| 一般 | Light／Dark／系統主題、軟體介面語言、LLM 常用語言、關閉視窗後留在背景、影音元件、資料清理、資料位置與版本。 |
-| 個人資訊 | 姓名、電話、常用／公司 Email、公司、職稱、補充背景，以及是否提供給模型。 |
-| 郵件帳戶 | Google 登入、帳號與同步操作、同步時間、每日郵件整理及進階 Google 連接設定。 |
-| 模型與運算 | 文字 LLM、OCR、語音的獨立預設來源；本地 PC API 端點、UGen300 預留、本地策略，以及雲端端點、模型、參數與加密金鑰。 |
-| Prompt 設定 | 透過「開啟 Prompt 除錯」調整四種 LLM 任務的指示與文字模板。 |
-| 診斷紀錄 | 開啟診斷位置與匯出診斷紀錄。 |
+| General | Light/Dark/System theme, app language, LLM preferred language, background operation after closing the window, media runtime, data cleanup, data location, and version. |
+| Personal information | Name, phone, personal/work email, company, job title, additional background, and whether to share it with the model. |
+| Email accounts | Google sign-in, accounts and synchronization, sync timing, daily email organization, and advanced Google connection settings. |
+| Models and compute | Separate default sources for the text LLM, OCR, and speech; local PC API endpoints, the reserved UGen300 option, local policies, and cloud endpoints, models, parameters, and encrypted keys. |
+| Prompt settings | “Open prompt debugger” lets you adjust instructions and text templates for the four LLM tasks. |
+| Diagnostic logs | Open the diagnostics folder and export diagnostic logs. |
 
-切換分類會保留當次尚未保存的語言、個人資訊、郵件連接與同步設定、端點、金鑰及模型策略表單內容；需要按「保存」的項目仍須保存才生效。這不代表未保存內容會在程式重啟後恢復，重新開啟以已保存設定為準。主題與背景保留等即時選項選取後套用；模型設定的本地／雲端分頁只切換配置畫面，每次任務另外選來源。
+Switching categories preserves unsaved language, personal information, email connection and sync settings, endpoints, keys, and model policy form values during the current session. Settings with a Save button still require saving to take effect. Unsaved values are not restored after restarting the app; only saved settings are restored. Immediate options, such as the theme and background operation, apply when selected. The Local models/Cloud models tabs in model settings only switch the configuration view; each task chooses its source separately.
 
-首頁的「連接信箱」及 Google 授權完成後會直接開啟「郵件帳戶」；Prompt 除錯頁的「返回設定」會回到「Prompt 設定」。
+“Connect mailbox” on the home page and completion of Google authorization open “Email accounts” directly. “Back to settings” in the prompt debugger returns to “Prompt settings.”
 
-## 軟體介面語言
+## App language
 
-開啟「設定 → 一般 → 軟體介面語言」，選「繁體中文」（`zh-TW`）或「English」（`en`），再按「保存介面語言」。預設為繁體中文；保存後立即套用選單、按鈕、固定提示、系統匣選單與日期格式，無須重新啟動，重新開啟程式仍保留選擇。英文介面的入口是「Settings → General → App language」，保存按鈕為「Save app language」。
+Open Settings → General → App language, choose “Traditional Chinese” (`zh-TW`) or “English” (`en`), and click “Save app language.” Traditional Chinese is the default. Saving immediately updates menus, buttons, fixed notices, the system tray menu, and date formats without restarting. The choice is retained when you reopen the app. In the Traditional Chinese interface, the same controls are “設定 → 一般 → 軟體介面語言” and “保存介面語言.”
 
-切換時只更新介面顯示，不重新啟動程式，也不取消正在執行的聊天、潤句、翻譯、郵件分析、OCR 或轉錄工作。來源郵件、輸入與草稿、已生成的內容、譯文、逐字稿及 Prompt 保留原文；外部服務回傳的錯誤與診斷內容、既有歷史紀錄也不會自動翻譯。
+Changing the language only updates the interface. It does not restart the app or cancel an active chat, writing polish, translation, email analysis, OCR, or transcription task. Source emails, input and drafts, generated content, translations, transcripts, and prompts retain their original text. Errors and diagnostic content returned by external services, and existing history, are not translated automatically either.
 
-## LLM 常用語言
+## LLM preferred language
 
-「設定 → 一般 → LLM 常用語言」控制 LLM 對話優先使用的回覆語言，與軟體介面語言各自保存。把介面改為 English 不會更改 LLM 常用語言（`preferredLanguage`），也不會更改翻譯頁的來源／目標語言或模型 Prompt。
+Settings → General → “LLM preferred language” controls the language preferred for LLM chat replies and is saved separately from the app language. Changing the interface to English does not change the LLM preferred language (`preferredLanguage`), translation source/target languages, or model prompts.
 
-此處有繁中、簡中、英、日、韓、西、法、德八種選項，按「保存語言」才生效；明確要求其他語言時，模型依提問處理。保存不同的 **LLM 常用語言** 會停止正在生成的聊天並保留問題，既有成功回答不改寫。詳細說明見 [LLM 常用語言](LLM_FEATURES.md#llm-常用語言)。
+The eight options are Traditional Chinese, Simplified Chinese, English, Japanese, Korean, Spanish, French, and German. Click “Save language” to apply the choice. If you explicitly request another language, the model follows that request. Saving a different **LLM preferred language** stops the chat response currently being generated and preserves the question; existing successful answers are not rewritten. See [LLM preferred language](LLM_FEATURES.md#llm-preferred-language).
 
-## 資料清理
+## Data cleanup
 
-設定 → 一般 →「資料清理」會顯示各類資料數量。按下刪除按鈕後，先核對確認視窗中的範圍與數量；按「取消」保留資料，按確認刪除才執行。**清理會同步移除本機自動備份中的對應資料，無法從程式復原。**
+Settings → General → “Data cleanup” shows the amount of data in each category. After clicking a delete button, check the scope and counts in the confirmation dialog. “Cancel” keeps the data; deletion runs only when confirmed. **Cleanup also removes the corresponding data from local automatic backups. The app cannot restore deleted data.**
 
-| 按鈕 | 清理範圍 |
+| Button | Deletion scope |
 | --- | --- |
-| 刪除全部會議音檔 | 刪除已匯入的音訊副本、音訊會議項目與對應逐字稿，也整理單項移除後留下的受管理音訊副本。正在轉錄的音檔會停止處理；影片、電腦上的原始來源，以及其他項目或功能仍使用的共用檔案會保留。 |
-| 刪除全部對話紀錄 | 刪除所有 LLM 對話、訊息與未送出的草稿，停止正在產生的回覆。完成後保留一個可繼續輸入的空白「新對話」。 |
-| 刪除全部系統紀錄 | 清除 UFriend 的操作紀錄，以及目前與輪替的診斷檔案 `events.jsonl`、`events.1.jsonl` 至 `events.9.jsonl`。之後使用程式仍正常產生新紀錄；獨立 PC API 服務的紀錄由各服務自行管理。 |
+| Delete all meeting audio | Deletes imported audio copies, audio meeting items, and their transcripts. It also cleans up managed audio copies left after individual items were removed. Active audio transcription is stopped. Videos, original source files on your computer, and shared files still used by another item or feature are retained. |
+| Delete all chat history | Deletes all LLM conversations, messages, and unsent drafts, and stops any response being generated. One empty “New conversation” remains, ready for input. |
+| Delete all system logs | Clears UFriend activity logs and the current and rotated diagnostic files: `events.jsonl` and `events.1.jsonl` through `events.9.jsonl`. New logs are created normally as you continue using the app. Independent PC API services manage their own logs. |
 
-影音正在匯入時，會議音檔清理暫時停用，需等匯入完成。清理未完成時，確認視窗內會顯示原因並可重試；若音檔仍被其他程式使用，先關閉使用該檔案的程式，再按刪除重試。錯誤可能發生於部分資料已清除之後，請依視窗更新的數量處理。
+Meeting audio cleanup is temporarily disabled while media is being imported; wait for the import to finish. If cleanup does not finish, the confirmation dialog shows the reason and allows a retry. If another program is using an audio file, close that program and try deleting again. An error can occur after some data has already been removed, so use the updated counts in the dialog.
 
-## 現在可以做什麼
+## Available features
 
-| 功能 | 已實作的操作 |
+| Feature | Implemented operations |
 | --- | --- |
-| 首頁／郵件整理 | 逐封請 LLM 摘要，再只以最終摘要分七類；有品質或容量疑慮時可改存標示的原文摘錄及待核對分級。信件內頁的摘要卡片只顯示摘要與分類，完整原信在下方；長信有分段進度與取消。支援類別篩選及每日整理；同一台北日內略過未變動信件，隔日重算，人工分級保留。[操作說明](LLM_FEATURES.md#郵件逐封摘要與分類)。 |
-| 本機郵件 | 匯入 `.eml`，中文及 MIME 解析、附件保存、去重、文字與寄件者搜尋、來源／日期／資料夾篩選。 |
-| 郵件閱讀 | HTML 信件保留表格、字型樣式、段落、圖片與文中連結，閱讀區跟隨明暗主題；支援內嵌與外部圖片、載入失敗重試，純文字信件也可閱讀。 |
-| 郵件管理 | 已讀／未讀、星號、封存、垃圾郵件、垃圾桶、標籤與移回收件夾；本機郵件保存到本機，Gmail 郵件操作同步原信箱並回報部分失敗。 |
-| 郵件撰寫 | 收件者、CC／BCC、回覆、回覆所有人、轉寄、附件、草稿保存／重開／刪除；有可用 Gmail 帳號時可寄送。 |
-| Gmail | 系統瀏覽器 OAuth＋PKCE／state、本機回呼、加密 Token、初次匯入與增量同步、定時同步、多帳號、斷線／重授權、來源連結。需先匯入自己的 Google Desktop OAuth 設定，再按 Google 登入。 |
-| Gmail 草稿 | 同步既有遠端草稿、保留回覆對話與附件、保存前核對遠端版本。衝突時保留本機內容，可保留副本後載入 Gmail 最新版本。寄送不明時不自動重寄。 |
-| 會議紀錄 | 拖入／選擇影音後確認語言，依序轉錄或指定開始時間，可修改／取消排程。點卡片開啟，影片左側播放、右側逐字稿及 CC 字幕；支援時間點跳轉、TXT／SRT 與燒錄字幕 MP4 匯出，無語音與失敗分開顯示。 |
-| 人工逐字稿 | 匯入／編輯 SRT、TXT，保存後重新開啟；匯出真正的檔案。SRT 可點時間定位播放，純 TXT 不會編造時間點。 |
-| OCR 工作區 | 事件接收／手動剪貼簿／匯入圖片、PP-OCRv5 真實辨識、取消、來源核對、人工編輯與複製。新圖清空舊結果，空白圖不產生假文字。 |
-| LLM 對話 | 即時顯示生成中的文字；新增、切換、重新命名與刪除各段對話，保存各自的成功問答與草稿。切換對話會停止目前生成，未完成答案不進歷史；傳送此對話與啟用的個人背景，不自動附加郵件或檔案。 |
-| 文字翻譯 | 選來源／目標語言、輸入原文、開始／取消與複製譯文。來源可自動偵測；修改原文或語言時清空舊譯文，保護新輸入不被晚到結果覆寫。 |
-| 文章潤句 | 用途／語氣／原文保存，只在按「產生文字」後啟動模型；取消、人工編輯與複製。輸入或選項變更即取消舊生成、清空結果，晚到結果不覆蓋新輸入。 |
-| 模型管理 | 三種駐留策略與閒置時間保存；模擬裝置、同模型重用、排隊、取消、拔除及閒置策略驗證。這些計時工作不執行模型。 |
-| 設定與紀錄 | 六個設定分類、繁中／英文介面、Light／Dark／系統主題、背景保留、同步時間、API 設定、Windows 加密憑證、持久系統紀錄與 JSON 匯出；四種 LLM Prompt 分別保存／恢復預設，診斷紀錄可開啟與匯出；一般分類提供會議音檔、全部對話與系統紀錄清理。 |
-| 個人偏好 | LLM 常用語言供對話優先使用，與軟體介面語言分開；姓名、電話、常用／公司 Email、公司、職稱與補充背景可保存，並選擇是否提供給對話、潤句及郵件分析。翻譯仍依自己的目標語言。 |
+| Home / email organization | Asks the LLM to summarize each email, then assigns one of seven categories using only the final summary. If quality or capacity is uncertain, it can save explicitly labeled source excerpts and mark the priority as needing review. The summary card inside an email shows only the summary and category, with the full original message below. Long emails have chunk progress and cancellation. Category filtering and daily organization are supported. Unchanged emails are skipped within the same Taipei calendar day and reassessed the next day; manual priorities are preserved. [Instructions](LLM_FEATURES.md#per-email-summaries-and-categorization). |
+| Local email | Import `.eml` files, parse Chinese text and MIME, save attachments, deduplicate messages, search text and senders, and filter by source, date, or folder. |
+| Email reading | HTML email retains tables, font styles, paragraphs, images, and inline links. The reading area follows the light/dark theme. Embedded and external images, retrying failed loads, and plain-text email are supported. |
+| Email management | Read/unread, stars, archive, spam, trash, labels, and moving messages back to the inbox. Local email changes are saved locally; Gmail operations are synchronized to the original mailbox, with partial failures reported. |
+| Email composition | Recipients, CC/BCC, reply, reply all, forwarding, attachments, and saving, reopening, or deleting drafts. Sending is available when a usable Gmail account is connected. |
+| Gmail | OAuth with PKCE/state in the system browser, a local callback, encrypted tokens, initial import and incremental synchronization, scheduled sync, multiple accounts, disconnect/reauthorization, and source links. Import your own Google Desktop OAuth configuration before signing in with Google. |
+| Gmail drafts | Synchronize existing remote drafts, preserve reply threads and attachments, and check the remote version before saving. Conflicts preserve local content; you can keep a copy before loading the latest Gmail version. An uncertain send is never retried automatically. |
+| Meeting notes | Drag in or select audio/video, confirm the language, and transcribe sequentially or choose a start time. Schedules can be edited or canceled. Open a card to view the video player on the left and transcript with CC captions on the right. Timestamp seeking, TXT/SRT export, and MP4 export with burned-in subtitles are supported. No-speech results and failures are shown separately. |
+| Manual transcripts | Import or edit SRT/TXT and reopen saved content; exports create real files. SRT timestamps can seek playback. Plain TXT does not invent timestamps. |
+| OCR workspace | Event-driven capture, manual clipboard capture, or image import; real PP-OCRv5 recognition; cancellation, source comparison, manual editing, and copying. A new image clears the previous result, and a blank image does not produce fabricated text. |
+| LLM chat | Displays text as it is generated. Create, switch, rename, or delete conversations, each with its own saved successful exchanges and draft. Switching conversations stops current generation; incomplete answers are excluded from history. Requests include this conversation and enabled personal background, without automatically attaching emails or files. |
+| Text translation | Choose source/target languages, enter source text, start/cancel, and copy the translation. The source language can be detected automatically. Changing the text or language clears the previous translation and prevents a late result from overwriting new input. |
+| Writing polish | Saves the purpose, tone, and source text, and calls the model only after you click “Generate text.” Supports cancellation, manual editing, and copying. Changing input or options cancels old generation and clears the result; late responses cannot overwrite new input. |
+| Model management | Saves three residency policies and an idle timeout. Simulated devices verify same-model reuse, queuing, cancellation, disconnection, and idle policies. These timed jobs do not run models. |
+| Settings and logs | Six settings categories, Traditional Chinese/English UI, Light/Dark/System theme, background operation, sync timing, API settings, Windows-encrypted credentials, persistent system logs, and JSON export. Each of the four LLM prompts can be saved or reset separately. Diagnostic logs can be opened or exported. General includes cleanup for meeting audio, all conversations, and system logs. |
+| Personal preferences | LLM preferred language is used for chat and is separate from the app language. Save a name, phone, personal/work email, company, job title, and additional background, and choose whether to share them with chat, writing polish, and email analysis. Translation continues to use its own target language. |
 
-Outlook、Yahoo 與其他信箱尚未支援。每日郵件整理在設定中啟用；目前沒有獨立待辦或日曆，也未對接 Google 或 Outlook 日曆。
+Outlook, Yahoo, and other mail providers are not supported yet. Daily email organization is enabled in Settings. There is currently no separate task list or calendar, and no Google or Outlook Calendar integration.
 
-## 會議紀錄與排程
+## Meeting notes and scheduling
 
-把音訊或影片拖到會議紀錄主頁，或點頁面上傳區，都會先開啟匯入視窗。可按「選擇檔案」加入影音，核對檔名、選擇轉錄語言，再選「只匯入，稍後再轉錄」「立即加入轉錄佇列」或「指定開始時間」，最後按「確認匯入」。確認前按取消不會複製檔案。一次最多 30 個；多檔使用同一組語言與轉錄設定，匯入完成後顯示成功與失敗數量。
+Drag audio or video onto the Meeting notes page, or click its upload area, to open the import dialog. Click “Choose files” to add media, check the filenames, choose the transcription language, then select “Import only; transcribe later,” “Add to queue now,” or “Choose a start time.” Click “Confirm import” to proceed. Canceling before confirmation does not copy the files. You can import up to 30 files at once. All files in one import share the language and transcription settings, and the app reports successful and failed imports afterward.
 
-已匯入的會議可由卡片或內容視窗按播放圖示加入佇列，日曆圖示設定時間。一次處理一個檔案；尚未到時間的工作不阻擋其他可執行工作，同時符合時間的工作依加入順序處理。已排隊／排程的項目會顯示狀態，可修改排程或取消；取消排程保留影音與會議內容。Whisper 回報忙碌時，佇列會保留工作並每 5 秒重試；其他錯誤顯示於卡片，下一項繼續處理。
+For an imported meeting, click the play icon on its card or detail dialog to add it to the queue, or the calendar icon to schedule it. One file is processed at a time. Jobs scheduled for later do not block other eligible jobs, and jobs due at the same time run in the order they were added. Queued/scheduled items show their status and let you edit or cancel the schedule. Canceling a schedule preserves the media and meeting content. If Whisper reports that it is busy, the queue keeps the job and retries every 5 seconds. Other errors appear on the card, and processing continues with the next item.
 
-**排程使用這台電腦的時區，UFriend 需保持開啟或留在系統匣。**排程設定會保存，關閉程式或電腦休眠期間到期的工作，在程式恢復執行後排隊；不會喚醒電腦或自動開啟已結束的程式。退出時正在轉錄的工作會暫停，重新加入佇列後從頭轉錄；尚未開始的佇列與指定時間會保留。
+**Schedules use this computer's time zone, and UFriend must remain open or running in the system tray.** Schedules are saved. Jobs that become due while the app is closed or the computer is asleep are queued when the app resumes. Scheduling does not wake the computer or launch an app that has been quit. Quitting pauses the transcription in progress; adding it back to the queue restarts transcription from the beginning. Jobs that have not started, and their scheduled times, are retained.
 
-點會議卡片任意空白處、名稱或右側文件圖示，可開啟播放與逐字稿。影片在寬視窗呈現左側播放器、右側可捲動的時間軸字幕，窄視窗改為上下排列。點時間點會定位影片並保留原本播放／暫停狀態；播放時會標示目前字幕段落。
+Click a blank area of a meeting card, its name, or the document icon on the right to open playback and the transcript. In a wide window, video appears on the left and a scrollable subtitle timeline on the right; a narrow window stacks them vertically. Clicking a timestamp seeks the video while preserving its playing/paused state. The current subtitle segment is highlighted during playback.
 
-有帶時間的逐字稿時，影片預設顯示 CC 浮動字幕，可按「字幕 CC」切換。字幕使用播放器的原生字幕軌，供一般播放及全螢幕呈現；內容來自 Whisper 轉錄或匯入的 SRT。純 TXT 沒有時間資訊，因此不產生浮動字幕或虛構時間點。原生試播仍受 Chromium 支援的影音編碼限制。
+A video with a timed transcript displays CC captions by default; use “Captions CC” to toggle them. Captions use the player's native text track in normal and full-screen playback and come from Whisper transcription or an imported SRT. Plain TXT has no timing information, so it does not create captions or invented timestamps. Native playback remains limited to media codecs supported by Chromium.
 
-## 匯出含字幕影片
+## Exporting video with burned-in subtitles
 
-在「會議紀錄」點開影片卡片，先完成語音轉錄或匯入含起訖時間的 SRT；需要修正文字時先按「編輯文字」並保存。影片下方按「匯出含字幕影片」，選擇本機儲存位置與新的 `.mp4` 檔名即可開始。純 TXT 與音訊不提供此輸出。
+Open a video card in Meeting notes and first finish transcription or import an SRT with start/end times. If the text needs correction, click “Edit text” and save it first. Below the video, click “Export video with subtitles,” choose a local save location and a new `.mp4` filename, and start the export. This option is not available for plain TXT or audio-only items.
 
-輸出將開始匯出當下的字幕固定在畫面下方，以白字黑邊呈現；繁中及英文會依畫面寬度分行。檔案使用 MP4、H.264 影片與第一條音軌的 AAC 聲音，沒有聲音的影片也可匯出。字幕已成為畫面的一部分，在其他播放器開啟時仍可看到，無法再用 CC 關閉。原影片保留，已存在的輸出檔名不覆寫，請選新檔名。
+The export burns the subtitles as they exist when the export starts into the bottom of the video, using white text with a black outline. Traditional Chinese and English wrap according to the frame width. Output uses MP4 with H.264 video and AAC audio from the first audio track. Videos without audio can also be exported. The subtitles become part of the picture, remain visible in other players, and cannot be turned off with CC. The original video is preserved, and existing output files are not overwritten; choose a new filename.
 
-一次匯出一部影片。匯出時顯示進度，可按「取消匯出」；取消會等轉檔程序結束並整理暫存後恢復操作。關閉內容視窗或切換頁面會繼續匯出，會議卡片顯示進度，重新開啟可繼續查看。成功後按「開啟輸出位置」查看成品。編輯逐字稿不會改動已開始的匯出，需要套用新文字時請再匯出一次。
+Only one video can be exported at a time. Progress is shown during export, and “Cancel export” is available. Cancellation waits for the conversion process to exit and temporary files to be cleaned up before restoring the controls. Closing the detail dialog or switching pages does not stop the export. The meeting card shows progress, and reopening it lets you continue monitoring. After success, click “Show exported file” to view the result. Editing the transcript does not change an export already in progress; export again to apply new text.
 
-從系統匣結束或重新啟動 UFriend 會取消尚未完成的匯出；下次需重新開始。輸出使用本機 CPU，所需時間與影片長度、解析度及電腦效能有關。片長可讀取時顯示百分比，無法取得時顯示處理狀態。請保留足夠空間供完整影片及暫存使用；儲存失敗時畫面會顯示原因。
+Quitting or restarting UFriend from the system tray cancels unfinished exports, which must be started again next time. Export uses the local CPU; duration depends on video length, resolution, and computer performance. A percentage is shown when video duration can be read; otherwise the app shows processing status. Leave enough disk space for the full video and temporary files. Save failures are explained on screen.
 
-目前的 Windows 發布版本已內建影音元件，可直接匯出已完成的字幕，不需要啟動 Whisper；「設定 → 一般 → 影音元件」會顯示已內建。若使用舊版或自行建置的不含元件版本，可在同一設定頁按「下載並安裝影音元件」（需要已安裝 7-Zip），或按「選擇已解壓的套件」指定固定的官方 Gyan 套件。選裝結果保存於使用者資料目錄，重啟與更新 EXE 後仍保留。詳見 [FFmpeg runtime 說明](../development/FFMPEG_RUNTIME.md)。
+The current Windows release includes the media runtime and can export completed subtitles without starting Whisper. Settings → General → Media runtime shows that it is bundled. For an older or self-built version without it, use “Download and install media runtime” on the same page (requires an installed copy of 7-Zip), or “Select extracted package” to choose the pinned official Gyan package. An optional installation is saved in the user data directory and survives restarts and EXE updates. See the [FFmpeg runtime guide](../development/FFMPEG_RUNTIME.md).
 
-## 閱讀郵件
+## Reading email
 
-從首頁或郵件清單開啟信件。HTML 郵件會在獨立閱讀區顯示表格、字型樣式、段落、圖片與文中超連結；閱讀區跟隨 UFriend 的 Light／Dark／系統主題，深色模式會調整背景、文字與表格邊線以維持可讀性，圖片像素保留原色。切換主題不重新載入信件，也不更改已保存的原文。只有純文字的信件仍可正常閱讀。
+Open a message from the home page or email list. HTML email displays tables, font styles, paragraphs, images, and inline links in an isolated reading area. It follows UFriend's Light/Dark/System theme. Dark mode adjusts backgrounds, text, and table borders for readability while preserving image pixels. Changing the theme does not reload the message or change its saved original content. Plain-text-only email remains readable.
 
-圖片支援郵件內嵌的 CID／Base64 圖片，以及外部 PNG、JPEG、GIF、WebP、BMP、ICO 圖片。外部圖片載入不帶 Cookie 或來源頁資訊；內容或圖片載入失敗時，信件內會顯示提示並可重試。點選 `http`／`https` 連結會開啟系統瀏覽器，點選 `mailto` 郵件連結會開啟系統郵件程式。信件中的指令碼、表單與嵌入網頁會過濾，閱讀區也禁止執行指令碼。
+Supported images include embedded CID/Base64 images and external PNG, JPEG, GIF, WebP, BMP, and ICO images. External images are loaded without cookies or referring-page information. If message content or an image fails to load, an inline notice allows a retry. `http`/`https` links open in the system browser; `mailto` links open in the system email app. Scripts, forms, and embedded web pages are filtered out, and the reading area also prohibits script execution.
 
-先前同步的 Gmail 舊信若缺少 HTML，開啟時會向 Gmail 補取並快取閱讀內容。這項補取只讀取原信，保留既有已讀狀態、星號、標籤與分析結果。以前匯入的本機 EML 若只留下純文字，重新匯入同一個原始 `.eml` 即可恢復 HTML；去重會更新原信，保留既有檔案對應、狀態與分析，不新增重複郵件。
+If an older synchronized Gmail message lacks HTML, opening it fetches and caches the reading content from Gmail. This read-only fetch preserves read status, stars, labels, and analysis results. For an older imported local EML that retained only plain text, importing the same original `.eml` again restores HTML. Deduplication updates the existing message while preserving file associations, state, and analysis instead of creating a duplicate.
 
-郵件分析會使用純文字副本，並在摘要前把主旨與內文的網頁網址替換成 `【網址】`。原信閱讀、搜尋與回覆保留完整網址。圖片與附件的未讀狀態仍分開記錄，摘要卡片只顯示摘要文字及分類。圖片能在閱讀區顯示，不代表已完成 OCR。郵件整理不自動讀取圖片或附件全文，此版郵件撰寫與寄送仍使用既有的純文字流程。
+Email analysis uses a plain-text copy and replaces web URLs in the subject and body with `【網址】` before summarization. Original-message reading, search, and replies retain complete URLs. Unread image and attachment content is tracked separately, and the summary card shows only the summary text and category. Displaying an image in the reading area does not mean OCR has been performed. Email organization does not automatically read images or full attachment content. In this version, composition and sending continue to use the existing plain-text workflow.
 
-## 連接 Gmail
+## Connecting Gmail
 
-公開發行包與原始碼均使用空白 OAuth 設定範本。請先依 [Gmail 設定指南](GMAIL_SETUP_GUIDE.md)建立自己的 Google Desktop OAuth client，下載 JSON，接著：
+Both the public release and source code use a blank OAuth configuration template. Follow the [Gmail setup guide](GMAIL_SETUP_GUIDE.md) to create your own Google Desktop OAuth client and download its JSON file, then:
 
-1. 開啟 UFriend → 設定 → 郵件帳戶 → 進階設定（開發者），按「匯入 Google 設定檔」並選取原始 JSON。
-2. 按 Google 登入，在系統瀏覽器選擇允許使用的帳號，閱讀並同意所需的 Gmail 權限。
-3. 返回 UFriend，確認帳號出現並完成同步。首次同步天數與自動同步間隔可獨立調整。
+1. Open UFriend → Settings → Email accounts → Advanced settings (developers), click “Import Google configuration,” and select the original JSON file.
+2. Click Google sign-in, choose an allowed account in the system browser, and review and approve the requested Gmail permissions.
+3. Return to UFriend, confirm that the account appears, and let synchronization finish. The initial sync window in days and the automatic sync interval can be adjusted separately.
 
-匯入或手動設定只覆寫這台電腦的連接設定，不會修改原始碼範本；清除覆寫後，公開版本回到未配置狀態。不要公開 OAuth 下載檔、Secret 或 Token。
+Importing or manually configuring an account overrides only this computer's connection settings, without changing the source template. Clearing the override returns the public version to an unconfigured state. Do not publish OAuth downloads, secrets, or tokens.
 
-程式請求 `gmail.modify` 權限，用於讀取、管理、草稿與寄送，不提供略過垃圾桶的永久刪除。可登入帳號、授權有效性與正式發行條件取決於所使用的 Google OAuth 專案設定；相關配置見 [Gmail 設定指南](GMAIL_SETUP_GUIDE.md)。
+The app requests the `gmail.modify` scope for reading, managing, drafting, and sending email. It does not offer permanent deletion that bypasses Trash. Allowed accounts, authorization validity, and production release requirements depend on the Google OAuth project being used; see the [Gmail setup guide](GMAIL_SETUP_GUIDE.md).
 
-程式會控制每個帳號的讀取速度，並對 Google 回報的暫時限流自動等待後重試。首次同步數百封郵件可能需要數分鐘，完成後才會更新「上次同步」時間。權限、API 未啟用、組織政策及配額錯誤會顯示各自的處理提示；寄送與其他修改操作不會因這項重試機制被自動重送。
+The app controls the read rate for each account and automatically waits and retries when Google reports temporary rate limiting. Initial synchronization of hundreds of messages may take several minutes; “Last sync” is updated only after completion. Permission, disabled API, organization policy, and quota errors have their own guidance. Sending and other modifying operations are not automatically repeated by this retry mechanism.
 
-同步按鈕會顯示旋轉圖示與「同步中…」，同步期間停用重複操作；完成或失敗後恢復。首頁空狀態沿用產品主題：已連接帳號時顯示「同步郵件」，尚未連接時顯示「連接信箱」並開啟設定。Google 授權按鈕保留在郵件帳戶設定內。
+The sync button shows a spinning icon and “Syncing…” and disables duplicate actions while synchronization is running. It returns to normal on success or failure. The empty home page follows the product theme: a connected account shows “Sync mail,” while an unconnected workspace shows “Connect mailbox” and opens Settings. The Google authorization button remains in Email accounts settings.
 
-尚未連接 Gmail 時，可先匯入 EML 測試本機郵件操作；撰寫內容會保存成草稿，不能假裝已寄送。Gmail 同步、寄信或草稿操作失敗會保留本機內容。寄送結果不確定時，先檢查 Gmail 寄件備份，再決定是否重試。
+Without Gmail connected, you can import EML files to try local email operations. Composed content is saved as a draft and is never presented as sent. Gmail sync, sending, and draft failures preserve local content. If a send result is uncertain, check Gmail's Sent folder before deciding whether to retry.
 
-## 使用 PC 文字模型
+## Using a PC text model
 
-文字模型使用獨立的 `PC-LLM-API` 服務。模型與 runtime 由該專案管理，不包含在 UFriend 原始碼或可攜式成品中；需另行取得服務原始碼並依其 README 安裝。本指南的簡短主題郵件摘要對應 PC-LLM-API 0.1.10；遇到相容性提示時，核對服務 README 並更新、重啟需要的服務。三種服務的環境、預設端點與啟動方式見 [PC 模型指南](PC_MODELS.md)。
+Text generation uses the independent `PC-LLM-API` service. That project manages its models and runtime; they are not included in UFriend's source or portable release. Obtain the service source separately and install it according to its README. The brief topic summaries described here correspond to PC-LLM-API 0.1.10. If a compatibility notice appears, check the service README, update the required service, and restart it. See the [PC models guide](PC_MODELS.md) for the three services' environments, default endpoints, and startup instructions.
 
-1. 啟動 `PC-LLM-API`，等候模型就緒。預設服務端點為 `http://127.0.0.1:8765`。
-2. UFriend → 設定 → 模型與運算 → 本地，連線方式選 PC API，核對並保存端點，再測試連線。
-3. 回到要使用的功能，來源選「本地」，再開始郵件分析、潤句、對話或翻譯。也可在該次任務選用已配置的雲端；停止服務後會回報錯誤並保留原文，詳見 [LLM 指南](LLM_FEATURES.md)。
+1. Start `PC-LLM-API` and wait until the model is ready. The default endpoint is `http://127.0.0.1:8765`.
+2. In UFriend → Settings → Models and compute → Local models → Local backend, choose “PC local services,” check and save the endpoint, then test the connection.
+3. Return to the feature you want to use, choose “Local,” and start email analysis, writing polish, chat, or translation. You can also choose a configured cloud source for that task. If the service stops, the app reports an error and preserves the source content. See the [LLM guide](LLM_FEATURES.md).
 
-「整理新增／變動郵件」會處理開始當下收件匣中需要更新的郵件，包含已讀與已處理信件。每次先請 LLM 摘要一封信，再只以最終 `summary` 分類；若內容檢查或容量限制使結果改為「原文摘錄」，分類收到的也是這段最後保存的文字。程式會在本機將郵件摘要與分級理由中的簡體轉為繁體；既有摘要也套用繁體顯示，無須重新分析。原信、逐字引文、網址及程式碼保持原樣。整理按鈕、AI 來源選擇與整批進度集中在首頁及收件匣。郵件內頁保留優先程度、處理與移動操作，以及摘要和原信；不顯示單封重新整理按鈕或整批統計。
+“Organize new / changed mail” processes inbox messages that need updating when the batch starts, including read and already-handled messages. Each email is summarized first and then categorized using only its final `summary`. If content checks or capacity limits cause “Source excerpts” to be saved instead, categorization receives that final saved text. The app locally converts Simplified Chinese in summaries and priority reasons to Traditional Chinese. Existing summaries also display in Traditional Chinese without reanalysis. Original messages, verbatim quotations, URLs, and code are preserved. The organization button, AI source selector, and batch progress are grouped on the home page and inbox. The email detail view retains priority, handling and move actions, the summary, and the original message; it does not show a single-message reorganization button or batch statistics.
 
-畫面分級使用 `0＝優先回覆`、`1＝今日處理`、`2＝稍後處理`：API 判斷分別是本人今天有明確截止時刻／明示立即處理、本人今天有一般待辦、今天無待辦或未來才需處理。存在疑慮時顯示「待核對」，不套用模型分級；人工設定仍保留。分類、本人寄出的郵件或缺少「請」等字詞都不能單獨證明沒有待辦，系統不據此直接改成「稍後處理」。
+The displayed priorities are `0 = Reply first`, `1 = Handle today`, and `2 = Handle later`. The API meanings are, respectively: an explicit deadline today or an explicit immediate action for the user; an ordinary task for the user today; and no task today or an action due in the future. Uncertain results show “Needs review” without applying the model priority; manual settings are preserved. A category, a message sent by the user, or the absence of words such as “please” cannot alone prove that there is no task. The system does not directly change such a message to “Handle later.”
 
-每封先嘗試全文摘要；輸入超限、輸出達上限或重複生成時，會分段選取原文，保留可辨識的重要日期、金額、狀態、條件及上下文，必要時再篩選候選原文後彙整。進度顯示「已完成 i / n 段」，可取消。選文／彙整仍遇到容量上限且有可核對來源時，可保存標示的「原文摘錄」與「待核對」，不把未完成的模型回答當成成功摘要；取消、逾時、格式或引文錯誤仍失敗。本地與雲端沿用相同流程，不自動切換來源。
+Each email first attempts a full-text summary. If input is too long, output reaches its limit, or repetitive generation is detected, the app selects source text in chunks, retaining identifiable important dates, amounts, states, conditions, and context. If necessary, it selects again from candidate source text before combining the result. Progress shows “Completed i / n segments,” and cancellation is available. If selection or composition still exceeds capacity and verifiable source text is available, the app can save labeled “Source excerpts” with “Needs review,” instead of treating an unfinished model response as a successful summary. Cancellation, timeouts, format errors, and quotation errors still fail. Local and cloud processing follow the same flow and never switch sources automatically.
 
-「摘要與分類」卡片只顯示已保存的完整摘要文字及分類，不再列出原文重點、引文、品質提示、模型建議、理由或產生資訊。完整原信仍可在下方閱讀；既有信件可直接顯示，無須重新整理。摘要預設只用簡短主題或用途短語，例如「影音內容推薦」「付款完成通知」，概括本次郵件最上方正文的大致方向；可辨識的引用舊信與後續回覆不納入，不重建寄信回信流程，也不要求列出所有次要細節。原信閱讀區仍可查看完整內容。漏掉優惠門檻或日期等資訊不會單獨使摘要變成大段原文；待辦理由有問題時，也會保留有效摘要、只暫停套用分級。新增幣別、部分數字／代碼／時長、附件及明確條件矛盾仍有有限檢查，內容檢查範圍有限，摘要仍需依原信核對。
+The “Summary and category” card shows only the complete saved summary and category. It no longer lists source facts, quotations, quality notices, model suggestions, reasons, or generation details. The full original email remains below, and existing messages display without reorganization. By default, a summary is just a brief topic or purpose phrase, such as “影音內容推薦” (“Media recommendations”) or “付款完成通知” (“Payment confirmation”), describing the broad direction of the current message's top-level body. Identifiable quoted older messages and subsequent replies are excluded. The summary does not reconstruct the send/reply sequence or enumerate every secondary detail; the full original is still available in the reading area. Omitting a promotion threshold or date does not by itself replace the summary with a long source excerpt. If only the task reason is problematic, the valid summary remains and only priority application is withheld. Limited checks still cover added currencies, some numbers/codes/durations, attachments, and explicit contradictions in conditions. These content checks are limited, so summaries still need to be checked against the original.
 
-分析快取包含原始文字／網址、寄件者地址、附件／圖片狀態、收件者與模型設定及台北日期；同日未變則略過，隔日重新整理會重算當天待辦。批次途中跨日仍沿用開始時的參考日期。已讀、星號、標籤或人工分級變更不會單獨觸發重算。
+The analysis cache includes original text/URLs, sender address, attachment/image state, recipient and model settings, and the Taipei calendar date. Unchanged messages are skipped on the same day; organizing again the next day reassesses that day's tasks. A batch that crosses midnight continues to use its starting reference date. Changes to read status, stars, labels, or manual priority alone do not trigger recalculation.
 
-分析只寫入本機摘要、原文重點、分類與分級，不會寄信、修改 Gmail 標籤或建立日曆。本人身分來自該信所屬帳號；無可對應帳號時不猜測。摘要階段收到網址已替換的文字、郵件日期、寄件者姓名與地址、To／CC、本人地址、本批參考時間及附件／圖片內容狀態；不含 OAuth Token、API Key、附件檔案或 BCC。分類階段只收到最終摘要。取消會中止請求並保留已完成項目；分析期間移走或來源狀態變動的信件會略過。
+Analysis writes only local summaries, source facts, categories, and priorities. It does not send email, change Gmail labels, or create calendar events. The user's identity comes from the account associated with the message and is not guessed when there is no matching account. Summarization receives URL-replaced text, message date, sender name/address, To/CC, the user's address, the batch reference time, and attachment/image content status. It does not receive OAuth tokens, API keys, attachment files, or BCC. Categorization receives only the final summary. Canceling aborts requests and preserves completed items. Messages moved away or whose source state changes during analysis are skipped.
 
-完整提示、郵件欄位、歷史及輸出預留都計入 PC 服務的 8,192-token 上限。分段與原文摘錄仍有容量和時間限制，無法完成時保留原信並顯示錯誤。一般全文摘要沿用個人背景與自訂 Prompt；分段選文、彙整及分類使用固定提示，不附加這些設定。明確的模型控制文字可能被服務要求人工確認；這是有限的保守檢查，不代表完整防注入保證。PC 延遲也不代表 UGen300 的速度、功耗或 USB 穩定性。
+The complete prompt, email fields, history, and reserved output all count toward the PC service's 8,192-token limit. Chunking and source excerpts still have capacity and time limits; when processing cannot complete, the original remains and an error is shown. Ordinary full-text summaries use personal background and custom prompts. Chunk selection, composition, and categorization use fixed prompts without those settings. Explicit model-control text may cause the service to require manual review. This is a limited conservative check, not a guarantee of complete prompt-injection protection. PC latency is also not evidence of UGen300 speed, power consumption, or USB stability.
 
-## 保存與恢復
+## Saving and recovery
 
-- `state.json`：郵件快取、草稿、設定、影音／圖片索引、人工內容、模型分析結果與紀錄。郵件分析保存摘要或標示的原文摘錄、原文重點、品質提示、建議分級、理由、引文、時間及模型來源；批次中斷後保留已完成項目。
-- `state.backup.json`：上一個已確認版本；目前資料檔損壞時可由備份復原並保留壞檔。使用「資料清理」時，對應資料也會從這份自動備份移除。
-- `files/`：匯入的附件、影音與圖片副本。原始來源檔案不會被修改。
-- 對話紀錄／各段草稿、翻譯原文／語言／成功譯文、已保存的自訂 Prompt 都在此工作空間保存；聊天未完成串流不作為成功歷史保存。
-- `diagnostics/events.jsonl`：本機診斷紀錄，單檔上限 2 MiB、最多保留 5 份；設定 → 診斷紀錄與系統紀錄頁可開啟位置或匯出。錯誤代碼、request ID 與後端紀錄的對照方式見[LLM 指南](LLM_FEATURES.md)。
-- `credentials.bin`：使用 Electron `safeStorage`／Windows 使用者加密的 Gmail 憑證與 API Key。一般資料不是全磁碟加密；請在自己的 Windows 帳戶中使用。
-- 憑證損壞或換 Windows 帳戶而無法解密時，其餘本機功能仍可使用。設定會提供「重設憑證」，保留舊檔後重新設定帳號／金鑰。
-- 單項移除會議或清除 OCR 會移除工作區中的記錄／對應，保留管理檔案。「資料清理 → 刪除全部會議音檔」可清理受管理的音訊副本，包含先前單項移除後留下的音檔；影片與其他功能仍使用的共用檔案會保留。
-- 備份或搬移一般資料時先完全結束 UFriend，再備份整個 `workspace`。憑證不能視為跨 Windows 帳戶可攜，搬機後須重新授權。
-- 由「影音元件」設定安裝的 FFmpeg 位於使用者資料目錄的 `media-runtime/ffmpeg/`，在 `workspace` 之外。它不放在單一 EXE 的暫存解壓目錄，因此重啟及更新程式後仍可使用；工作空間資料清理不會移除它。
+- `state.json`: email cache, drafts, settings, media/image indexes, manual content, model analysis results, and logs. Email analysis saves the summary or labeled source excerpts, source facts, quality notices, suggested priority, reasons, quotations, timestamps, and model source. Completed items survive an interrupted batch.
+- `state.backup.json`: the previous confirmed version. If the current data file is damaged, the app can recover from the backup and preserve the damaged file. Data cleanup also removes the corresponding data from this automatic backup.
+- `files/`: imported copies of attachments, audio/video, and images. Original source files are not modified.
+- Conversation history and each conversation's draft, translation source text/languages/successful result, and saved custom prompts are stored in this workspace. Incomplete chat streams are not saved as successful history.
+- `diagnostics/events.jsonl`: local diagnostic logs, up to 2 MiB per file and up to 5 retained files. Open the location or export logs from Settings → Diagnostic logs or the System logs page. See the [LLM guide](LLM_FEATURES.md) for matching error codes and request IDs to backend logs.
+- `credentials.bin`: Gmail credentials and API keys encrypted with Electron `safeStorage` and the Windows user account. General data is not protected by full-disk encryption provided by UFriend; use your own Windows account.
+- If credentials are damaged or cannot be decrypted after changing Windows accounts, other local features remain available. Settings offers “Reset credentials,” which preserves the old file before you configure accounts/keys again.
+- Removing one meeting or clearing OCR removes workspace records/associations while retaining managed files. Data cleanup → “Delete all meeting audio” can remove managed audio copies, including files left after earlier individual removals. Videos and shared files still used by other features are retained.
+- Before backing up or moving ordinary data, quit UFriend completely, then back up the entire `workspace`. Credentials should not be treated as portable across Windows accounts; authorize again after moving to another computer.
+- FFmpeg installed through Media runtime settings is stored under `media-runtime/ffmpeg/` in the user data directory, outside `workspace`. It is not placed in the single EXE's temporary extraction directory, so it survives app restarts and updates. Workspace cleanup does not remove it.
 
-## 模型運算與資料邊界
+## Model processing and data boundaries
 
-本地可透過這台電腦上的三個 PC API 處理文字、圖片或影音；雲端可連接 OpenAI 相容 API，各功能分別設定模型。UFriend 不負責下載或啟停本地服務；關閉桌面程式不會停止它們。本地端點僅接受 loopback HTTP。
+Local processing uses the three PC APIs on this computer for text, images, or media. Cloud processing can connect to an OpenAI-compatible API with models configured separately for each feature. UFriend does not download, start, or stop local services, and closing the desktop app does not stop them. Local endpoints accept only loopback HTTP.
 
-UGen300 屬於本地連線方式，尚未接入實體設備。各任務保留自己的本地／雲端來源，失敗時不自動改送其他來源。模型管理頁的計時調度屬模擬，不能當成硬體已載入或模型已完成的證據。會議來源、排程及資料傳送範圍見[模型來源指南](MODEL_SOURCES.md)。
+UGen300 is a local connection option, but physical hardware is not integrated yet. Each task retains its own local/cloud source and does not switch to another source automatically on failure. Timed scheduling on the model management page is a simulation and is not evidence that hardware has loaded a model or completed inference. See the [model sources guide](MODEL_SOURCES.md) for meeting sources, schedules, and data transmission scope.
 
-模型工作只傳送該功能必要的輸入。聊天使用目前對話及啟用的個人背景，郵件分析使用單封郵件的文字與必要欄位；OCR 和轉錄傳送所選圖片或影音。模型結果不能觸發寄信、刪信、建立日曆或執行程式。API 欄位與取消、驗證邊界見[模型介面說明](../../app/models/README.md)。
+Model jobs send only the input needed by that feature. Chat uses the current conversation and enabled personal background; email analysis uses one email's text and necessary fields; OCR and transcription send the selected image or media. Model results cannot trigger email sending/deletion, calendar creation, or program execution. See the [model interface documentation](../../app/models/README.md) for API fields and cancellation/validation boundaries.
 
-Gmail 同步與寄送會連接 Google；閱讀外部圖片會連接圖片來源網站。本機模型推論不代表所有功能都能離線使用。
+Gmail synchronization and sending connect to Google. Reading external images connects to their host websites. Local model inference does not mean that every feature works offline.
 
-## 安裝、編譯與驗證
+## Installation, building, and verification
 
-執行環境、原始碼啟動、FFmpeg 準備、測試、打包與成品整理集中在[安裝與編譯指南](INSTALL_BUILD.md)。Google 登入配置見 [Gmail 設定指南](GMAIL_SETUP_GUIDE.md)；獨立模型服務的安裝與啟動見 [PC 模型指南](PC_MODELS.md)。
+The [installation and build guide](INSTALL_BUILD.md) covers environment requirements, running from source, preparing FFmpeg, testing, packaging, and release cleanup. See the [Gmail setup guide](GMAIL_SETUP_GUIDE.md) for Google sign-in configuration and the [PC models guide](PC_MODELS.md) for installing and starting the independent model services.

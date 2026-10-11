@@ -1,5 +1,7 @@
 # UFriend's Windows FFmpeg build
 
+[English](https://github.com/breeze0305/UFriend/blob/main/docs/development/MEDIA_RUNTIME_BUILD.md) | [繁體中文](https://github.com/breeze0305/UFriend/blob/main/docs/development/MEDIA_RUNTIME_BUILD.zh-TW.md)
+
 This recipe builds FFmpeg 8.1.2 with the `ufriend1` suffix from seven pinned
 source archives. It includes x264, LAME, libass, FreeType, FriBidi and HarfBuzz.
 The native FFmpeg codecs, formats and filters are kept where their prerequisites

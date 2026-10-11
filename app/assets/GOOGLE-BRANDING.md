@@ -1,5 +1,7 @@
 # Google sign-in artwork
 
+[English](GOOGLE-BRANDING.md) | [繁體中文](GOOGLE-BRANDING.zh-TW.md)
+
 `google-g.png` is the unmodified Google G asset downloaded from:
 https://developers.google.com/static/identity/images/g-logo.png
 

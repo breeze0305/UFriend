@@ -1,34 +1,36 @@
-# FFmpeg 媒體 runtime
+# FFmpeg media runtime
 
-UFriend 使用獨立的 FFmpeg 程序處理含字幕影片匯出，以及雲端語音轉錄前的音訊擷取與分段。只有使用者明確操作安裝功能時才下載工具；影音工作不搜尋系統 `PATH`，也不啟停獨立 PC 模型服務。
+[English](FFMPEG_RUNTIME.md) | [繁體中文](FFMPEG_RUNTIME.zh-TW.md)
 
-內建版本使用專案自行編譯的 **8.1.2-ufriend1** Windows x64 build。版本、執行檔與授權文件 SHA-256、原始碼封包及建置版本位於[內建 runtime manifest](../../scripts/runtime/ffmpeg-bundled/runtime.json)。完整原始碼作為同一份 GitHub Release 的附件提供；一般使用者只需下載 UFriend EXE。
+UFriend uses a separate FFmpeg process to export videos with subtitles and to extract and segment audio before cloud transcription. Tools are downloaded only when the user explicitly starts installation. Media tasks do not search the system `PATH` or start or stop independent PC model services.
 
-不含 FFmpeg 的成品保留另一條選用安裝路徑，直接取得 Gyan **8.1.2-essentials_build-www.gyan.dev**。其[獨立 manifest](../../scripts/runtime/ffmpeg/runtime.json)不與內建版本混用。
+The bundled version uses the project's own **8.1.2-ufriend1** Windows x64 build. The [bundled runtime manifest](../../scripts/runtime/ffmpeg-bundled/runtime.json) records the version, SHA-256 hashes of the executable and license files, source archive and build revision. Complete source is provided as an asset in the same GitHub Release; ordinary users need only download the UFriend EXE.
 
-## 已內建的版本
+Builds without FFmpeg retain a separate optional installation path that obtains Gyan **8.1.2-essentials_build-www.gyan.dev** directly. Its [separate manifest](../../scripts/runtime/ffmpeg/runtime.json) is not interchangeable with the bundled version.
 
-目前的 UFriend Windows 發布版本開啟後即可使用 FFmpeg，不需下載元件或安裝 7-Zip。**設定 → 一般 → 影音元件** 顯示「影音元件已內建，無需另外安裝」。AI 轉錄、OCR、LLM 與 Gmail 仍依各自設定使用。
+## Versions with FFmpeg bundled
 
-## 從 UFriend 設定安裝
+The current UFriend Windows release can use FFmpeg as soon as it opens, without downloading components or installing 7-Zip. **Settings → General → Media runtime** displays that the media runtime is bundled and no separate installation is needed. AI transcription, OCR, LLM and Gmail still require their respective settings.
 
-以下適用於舊版或自行建置的**不含 FFmpeg** 成品。進入 **設定 → 一般 → 影音元件**（**Settings → General → Media runtime**）：
+## Install from UFriend Settings
 
-| 按鈕 | 行為 |
+The following applies to older or custom **builds without FFmpeg**. Open **Settings → General → Media runtime**:
+
+| Button | Behavior |
 | --- | --- |
-| 下載並安裝影音元件 / Download and install media runtime | 從 Gyan 官方下載固定套件，核對 SHA-256 後解壓與安裝；需要電腦已有 7-Zip。 |
-| 選擇已解壓的套件 / Select extracted package | 開啟原生資料夾選擇器，讀取自行準備的官方套件；不下載，也不需要 7-Zip。 |
-| 影音元件安裝說明 / Media runtime instructions | 在瀏覽器開啟本指南。 |
+| Download and install media runtime | Downloads the pinned package from Gyan's official site, verifies SHA-256, then extracts and installs it; requires 7-Zip to be installed on the computer. |
+| Select extracted package | Opens the native folder picker to read an official package you prepared yourself; does not download anything or require 7-Zip. |
+| Media runtime instructions | Opens this guide in a browser. |
 
-自動下載會尋找 `7z.exe` 或 `7za.exe`，包含一般 7-Zip 安裝位置。缺少工具時會顯示錯誤，不自動安裝 7-Zip；可先安裝解壓工具，或改選已解壓的套件。來源套件須包含 `bin/ffmpeg.exe`、`LICENSE` 與 `README.txt`。
+Automatic download looks for `7z.exe` or `7za.exe`, including the usual 7-Zip installation locations. If the tool is missing, it reports an error and does not install 7-Zip automatically. Install an extraction tool first, or select an already extracted package. The source package must contain `bin/ffmpeg.exe`, `LICENSE` and `README.txt`.
 
-安裝期間顯示進行狀態，完成後顯示「影音元件已就緒」。失敗可依畫面原因修正後重試。從系統匣結束或重新啟動 UFriend，會停止它啟動的安裝程序；只關閉視窗並留在系統匣時，程式仍在執行。
+Installation progress is displayed while the task runs; completion displays that the media runtime is ready. If it fails, correct the cause shown onscreen and retry. Exiting UFriend from the system tray or restarting it stops the installation process it launched. Closing only the window while leaving the app in the system tray keeps it running.
 
-安裝不要求系統管理員權限，所選使用者資料目錄須可寫入。原始碼開發版使用下方的開發快取準備流程，設定頁安裝器供已打包版本使用。
+Installation does not require administrator privileges, but the selected user-data directory must be writable. Source-code development uses the development-cache preparation procedure below; the Settings installer is for packaged versions.
 
-## 保存位置與程式更新
+## Storage location and app updates
 
-設定頁安裝的 runtime 位於 Electron 使用者資料目錄的 `media-runtime/ffmpeg/`，預設為：
+A runtime installed from Settings is stored in `media-runtime/ffmpeg/` under Electron's user-data directory. The default location is:
 
 ```text
 %APPDATA%\UFriend\media-runtime\ffmpeg\
@@ -39,91 +41,91 @@ UFriend 使用獨立的 FFmpeg 程序處理含字幕影片匯出，以及雲端�
   runtime.json
 ```
 
-它與工作資料 `%APPDATA%\UFriend\workspace` 分開，不放在單一 EXE 每次啟動產生的暫存解壓目錄。使用相同 Windows 帳戶及資料目錄時，重新啟動或換成新的 EXE 後仍可使用。若設定 `UFRIEND_DATA_DIR`，影音元件會保存在該目錄下的 `media-runtime/ffmpeg/`。
+This is separate from workspace data in `%APPDATA%\UFriend\workspace` and is not placed in the temporary extraction directory created each time the single EXE starts. It remains available after restarting or replacing the EXE when the same Windows account and data directory are used. If `UFRIEND_DATA_DIR` is set, the media runtime is stored in `media-runtime/ffmpeg/` under that directory.
 
-含元件版本優先使用程式內 `resources/ffmpeg/` 的已驗證 runtime；未內建的版本使用這個持久 runtime。關閉程式不刪除已成功安裝的影音元件，工作空間資料清理也不包含它。
+Versions that include the component prefer the verified runtime in the app's `resources/ffmpeg/`; versions without it use this persistent runtime. Exiting the app does not remove successfully installed media components, and workspace data cleanup does not include them.
 
-安裝器在發布安裝目錄前核對完整的固定檔案。有有效安裝時可驗證後結束；已有目錄內容不符時會報錯，不自行覆寫。下載、驗證或解壓失敗不會把未完成的安裝當成成功。完成後可重試原本的影音工作。
+The installer verifies the complete set of pinned files before making the installation directory available. An existing valid installation can be verified and accepted; an existing directory with mismatched contents produces an error and is not overwritten automatically. A failed download, verification or extraction cannot turn an incomplete installation into a successful one. Once installation completes, retry the original media task.
 
-LLM、OCR 與本地 Whisper 仍依[模型指南](../guides/PC_MODELS.md)各自配置。本地 Whisper 有自己的音訊處理 runtime；安裝桌面 FFmpeg 不會安裝語音模型。
+LLM, OCR and local Whisper still require their respective configurations in the [model guide](../guides/PC_MODELS.md). Local Whisper has its own audio-processing runtime; installing desktop FFmpeg does not install a speech model.
 
-## 自行下載及解壓
+## Download and extract manually
 
-使用[固定上游套件](https://www.gyan.dev/ffmpeg/builds/packages/ffmpeg-8.1.2-essentials_build.7z)。壓縮檔 SHA-256 應為：
+Use the [pinned upstream package](https://www.gyan.dev/ffmpeg/builds/packages/ffmpeg-8.1.2-essentials_build.7z). Its archive SHA-256 must be:
 
 ```text
 e25b682664025d49034c981afb4bae36238a40f29a3cc1c713ad9a8b5b3528f6
 ```
 
-可用 PowerShell 的 `Get-FileHash -Algorithm SHA256 -LiteralPath <檔案路徑>` 核對，亦可參照[發行者校驗檔](https://www.gyan.dev/ffmpeg/builds/packages/ffmpeg-8.1.2-essentials_build.7z.sha256)。
+Verify it in PowerShell with `Get-FileHash -Algorithm SHA256 -LiteralPath <file-path>`, or consult the [publisher's checksum file](https://www.gyan.dev/ffmpeg/builds/packages/ffmpeg-8.1.2-essentials_build.7z.sha256).
 
-使用自己的相容工具解壓後，回到設定頁按「選擇已解壓的套件」，選取含 `bin/ffmpeg.exe`、`LICENSE`、`README.txt` 的資料夾。安裝器仍會核對固定執行檔與上游文件的 SHA-256。不要使用不同版本或任意重新編譯的執行檔替代。
+After extracting the archive with a compatible tool of your choice, return to Settings, click **Select extracted package**, and choose the folder containing `bin/ffmpeg.exe`, `LICENSE` and `README.txt`. The installer still checks the pinned SHA-256 hashes of the executable and upstream documents. Do not substitute a different version or an arbitrarily rebuilt executable.
 
-## ZIP 資料夾包的命令列方式
+## Command-line installation for a ZIP folder package
 
-此方式只適用於**不含 FFmpeg 的 UFriend 資料夾／ZIP 成品**，不適用於內建包或獨立 FFmpeg 開發 ZIP。完整解壓後可使用根目錄的 **Install media runtime.cmd**。在該資料夾的 PowerShell 執行以下命令，自動下載固定套件：
+This method applies only to **UFriend folder/ZIP builds without FFmpeg**, not to bundled builds or the separate FFmpeg development ZIP. After extracting the entire package, use **Install media runtime.cmd** in its root directory. Run the following in PowerShell from that folder to download the pinned package automatically:
 
 ```powershell
 & '.\Install media runtime.cmd'
 ```
 
-自動下載同樣需要已安裝的 7-Zip；或者使用已解壓的官方套件：
+Automatic download also requires an installed copy of 7-Zip. Alternatively, use an already extracted official package:
 
 ```powershell
-$ffmpegSource = Read-Host '已解壓 FFmpeg 套件的資料夾'
+$ffmpegSource = Read-Host 'Folder containing the extracted FFmpeg package'
 & '.\Install media runtime.cmd' -From $ffmpegSource
 ```
 
-也可直接執行資料夾包內的 PowerShell 安裝器：
+You can also run the PowerShell installer inside the folder package directly:
 
 ```powershell
 powershell.exe -NoProfile -ExecutionPolicy Bypass -File '.\resources\media-runtime-setup\install-media-runtime.ps1' -From $ffmpegSource
 ```
 
-`-From` 不下載、不需要 7-Zip。這組命令預設安裝到**該資料夾包**的 `resources/ffmpeg/`，因此只保存在該份成品內；要跨程式更新保留，優先使用設定頁安裝。
+`-From` does not download anything or require 7-Zip. By default, these commands install into `resources/ffmpeg/` inside **that folder package**, so the installation stays with that particular build. Prefer installation through Settings if it should persist across app updates.
 
-進階呼叫可用 `-DestinationRoot` 指定絕對目錄，安裝器會在其下建立 `ffmpeg/`。設定頁已自動提供正確的使用者資料路徑，正常操作不需要這個參數。任意指定其他目錄不會改變 UFriend 的 runtime 搜尋位置。
+Advanced callers can use `-DestinationRoot` to specify an absolute directory, under which the installer creates `ffmpeg/`. Settings already supplies the correct user-data path, so normal use does not require this parameter. Choosing some other directory does not change where UFriend searches for its runtime.
 
-不要手動在單一 EXE 的暫存解壓目錄安裝工具；使用設定頁即可保存至持久位置。
+Do not manually install tools into the single EXE's temporary extraction directory. Use Settings to save them in the persistent location.
 
-## 原始碼開發環境
+## Source-code development environment
 
-開發與內建打包使用專案自建的 runtime，與上述 Gyan 選用安裝器分開。從[內建 manifest](../../scripts/runtime/ffmpeg-bundled/runtime.json)指定的 `archive.url` 下載套件，核對 `archive.sha256` 後解壓；也可執行[建置流程](MEDIA_RUNTIME_BUILD.md)產生並驗證新 runtime。
+Development and bundled packaging use the project's own runtime, separately from the Gyan optional installer described above. Download the package from `archive.url` in the [bundled manifest](../../scripts/runtime/ffmpeg-bundled/runtime.json), verify `archive.sha256`, then extract it. You can also follow the [build procedure](MEDIA_RUNTIME_BUILD.md) to produce and verify a new runtime.
 
-在專案根目錄，將來源指向包含 `bin/ffmpeg.exe`、`bin/ffprobe.exe` 與根目錄授權文件的自建套件：
+From the project root, point the source to the project-built package containing `bin/ffmpeg.exe`, `bin/ffprobe.exe` and the license documents in its root:
 
 ```powershell
-$ffmpegSource = Read-Host '已解壓 FFmpeg 套件的資料夾'
+$ffmpegSource = Read-Host 'Folder containing the extracted FFmpeg package'
 node scripts/prepare-ffmpeg.cjs --from $ffmpegSource
 ```
 
-準備程序核對固定 SHA-256、版本、編譯設定、ASS／subtitles 濾鏡與 libx264／AAC／MP3 編碼器，通過後才放入 `local/runtimes/ffmpeg/win32-x64/`。已有有效快取時可執行 `node scripts/prepare-ffmpeg.cjs` 再次驗證。失敗保留現有檔案，不自動改用另一個版本。若該位置仍是舊的 Gyan 快取，先正常結束使用它的程式，將整個快取另存至 `local/` 中的備份位置，再準備新版；不要將兩種 runtime 的檔案混合。
+Preparation checks the pinned SHA-256 hashes, version, build configuration, ASS/subtitles filters and libx264/AAC/MP3 encoders before placing the runtime in `local/runtimes/ffmpeg/win32-x64/`. With a valid cache already present, run `node scripts/prepare-ffmpeg.cjs` to verify it again. Failure preserves existing files and does not automatically switch to another version. If this location still contains an old Gyan cache, first close programs using it normally, move the entire cache to a separate backup location under `local/`, then prepare the new version. Do not mix files from the two runtimes.
 
-完整影音測試還需要同一上游套件的 `ffprobe.exe`。在執行測試的 PowerShell 中設定：
+Complete media tests also need `ffprobe.exe` from the same upstream package. Set the following in the PowerShell session used to run tests:
 
 ```powershell
 $env:UFRIEND_TEST_FFMPEG = (Resolve-Path -LiteralPath (Join-Path $ffmpegSource 'bin/ffmpeg.exe')).Path
 ```
 
-保留同目錄的 `ffprobe.exe`，再按[安裝指南](../guides/INSTALL_BUILD.md#驗證與測試)執行檢查。該變數只用於測試；桌面開發版使用固定快取。下載、快取與測試輸出不加入 Git。
+Keep `ffprobe.exe` in the same directory, then run the checks in the [installation guide](../guides/INSTALL_BUILD.md#validation-and-tests). This variable is only for testing; the desktop development version uses the fixed cache. Downloads, caches and test outputs are not committed to Git.
 
-## 打包模式
+## Packaging modes
 
-| 命令 | 產物及 FFmpeg 處理 |
+| Command | Output and FFmpeg handling |
 | --- | --- |
-| `npm run package:portable` | 單一 Windows EXE，檔名為 `UFriend-<version>.exe`。使用無內附 FFmpeg、無 OAuth 設定的資料夾包作為輸入，透過 electron-builder NSIS portable target 包裝；供使用者從設定頁安裝 runtime。 |
-| `npm run package:portable -- --with-ffmpeg` | 單一 EXE，同樣命名為 `UFriend-<version>.exe`。內含自建 FFmpeg 與授權／來源文件，並在包裝前核對雜湊、版本、字幕濾鏡及編碼器；首次使用不需安裝影音元件。 |
-| `npm run package -- --without-ffmpeg` | 可供 ZIP 分發的資料夾包。附設定頁安裝器、CMD 入口、版本資訊及上游聲明，不附 FFmpeg 執行檔；無需開發用 FFmpeg 快取即可打包。 |
-| `npm run package` | 從已驗證的開發快取複製 runtime 的資料夾包，適合本機使用。打包前及複製後均進行校驗與功能探測。 |
+| `npm run package:portable` | A single Windows EXE named `UFriend-<version>.exe`. Uses a folder package without bundled FFmpeg or OAuth settings as input and wraps it with electron-builder's NSIS portable target; users can install the runtime from Settings. |
+| `npm run package:portable -- --with-ffmpeg` | A single EXE, also named `UFriend-<version>.exe`. Includes the project-built FFmpeg and its license/source documents, checking hashes, version, subtitle filters and encoders before wrapping. Media components need no installation on first use. |
+| `npm run package -- --without-ffmpeg` | A folder package suitable for ZIP distribution. Includes the Settings installer, CMD entry point, version information and upstream notices, but no FFmpeg executable; packaging does not require the development FFmpeg cache. |
+| `npm run package` | A folder package that copies the runtime from the verified development cache, suitable for local use. Verification and capability probes run before packaging and after copying. |
 
-以上均不包含獨立 PC 模型服務。資料夾包的 `BUILD-INFO.json` 記錄打包時是否內附 runtime；使用者日後安裝不會改寫成「原本內附」。單一 EXE 另有 `PORTABLE-BUILD-INFO.json` 建置紀錄。產物位置與完整流程見[安裝指南](../guides/INSTALL_BUILD.md#建立可攜式成品)。
+None of these include the independent PC model services. The folder package's `BUILD-INFO.json` records whether the runtime was bundled at build time; later user installation does not rewrite it to claim that it was originally bundled. The single EXE also has a `PORTABLE-BUILD-INFO.json` build receipt. See the [installation guide](../guides/INSTALL_BUILD.md#build-a-portable-release) for output locations and the complete process.
 
-## 授權與來源紀錄
+## License and source records
 
-UFriend 專案採 [MIT License](../../LICENSE)，以獨立程序執行 FFmpeg。內建 FFmpeg 啟用了 GPL、version3、libass 與 libx264，依其 **GPLv3** 授權提供；UFriend 的 MIT 授權不替代這些條款。
+UFriend uses the [MIT License](../../LICENSE) and executes FFmpeg as a separate process. Bundled FFmpeg enables GPL, version3, libass and libx264 and is provided under its **GPLv3** license; UFriend's MIT license does not replace those terms.
 
-[內建來源紀錄](../../scripts/runtime/ffmpeg-bundled/SOURCES.md)、GPL 原文、第三方授權全文與 build 說明位於 `scripts/runtime/ffmpeg-bundled/`，打包後與 `ffmpeg.exe` 一起保存。Release 的完整對應來源附件包含 FFmpeg、實際使用的外部函式庫原始碼、固定來源校驗值及建置腳本。`runtime.json` 與成品 receipt 都記錄該來源附件的 SHA-256；公開發布前須核對一致並提供下載。GitHub 自動產生的 UFriend Source code ZIP 不包含這些第三方來源，不能代替這個附件。
+The [bundled source record](../../scripts/runtime/ffmpeg-bundled/SOURCES.md), original GPL text, full third-party license texts and build description reside in `scripts/runtime/ffmpeg-bundled/` and are stored alongside `ffmpeg.exe` in the package. The Release's complete corresponding-source asset includes FFmpeg, the source code of the external libraries actually used, pinned source checksums and build scripts. Both `runtime.json` and the artifact receipt record this source asset's SHA-256; consistency must be checked and a download provided before public release. GitHub's automatically generated UFriend Source code ZIP does not contain these third-party sources and cannot replace this asset.
 
-選用 Gyan 安裝器使用的[來源紀錄](../../scripts/runtime/ffmpeg/SOURCES.md)與上游文件則保留在 `scripts/runtime/ffmpeg/`。不含元件的包只提供安裝器，由使用者直接向 Gyan 取得執行檔；這份上游網址清單不能代替自建版本的完整來源附件。
+The Gyan optional installer's [source record](../../scripts/runtime/ffmpeg/SOURCES.md) and upstream documents remain in `scripts/runtime/ffmpeg/`. Packages without the component provide only an installer, through which users obtain the executable directly from Gyan. This list of upstream URLs cannot replace the complete source asset for the project's own build.
 
-參考：[Gyan build 說明](https://www.gyan.dev/ffmpeg/builds/) · [FFmpeg 授權資訊](https://ffmpeg.org/legal.html) · [第三方聲明](../../THIRD_PARTY_NOTICES.md)
+References: [Gyan build information](https://www.gyan.dev/ffmpeg/builds/) · [FFmpeg licensing information](https://ffmpeg.org/legal.html) · [Third-party notices](../../THIRD_PARTY_NOTICES.md)

@@ -4,13 +4,15 @@
 
 # UFriend
 
+[English](README.md) | [繁體中文](README.zh-TW.md)
+
 **A Windows workspace for email, recordings, image text, and everyday writing.**
 
 UFriend keeps your workspace on your computer and connects to separately configured local or cloud AI services. Review the original material alongside the result, edit it, and decide how to use it. The interface supports English and Traditional Chinese, with light, dark, and system themes.
 
 **Version: 0.1.41 · Windows x64 · Electron 44**
 
-[Releases](https://github.com/breeze0305/UFriend/releases) · [Documentation](docs/README.md) · [使用手冊（繁體中文）](docs/guides/APP_README.md) · [Report an issue](https://github.com/breeze0305/UFriend/issues)
+[Releases](https://github.com/breeze0305/UFriend/releases) · [Documentation](docs/README.md) · [User manual](docs/guides/APP_README.md) · [Report an issue](https://github.com/breeze0305/UFriend/issues)
 
 ## Features
 
@@ -60,7 +62,7 @@ The desktop repository contains HTTP adapters, **not model weights or model-serv
 | PC OCR API | `http://127.0.0.1:8767` | PP-OCRv5 mobile detection and recognition on CPU |
 | PC Whisper API | `http://127.0.0.1:8768` | Multilingual Whisper Small with PyTorch CUDA; Base is optional |
 
-Install and start each required service using its own README. In the local model settings, select PC API, save the endpoints, and test the connections. Only loopback endpoints are supported for these services. UFriend does not install, start, or stop them. See the [PC model guide](docs/guides/PC_MODELS.md) for requirements.
+Install and start each required service using its own README. In **Settings → Models and compute → Local models**, select **PC local services** under **Local backend**, save the endpoints, and test the connections. Only loopback endpoints are supported for these services. UFriend does not install, start, or stop them. See the [PC model guide](docs/guides/PC_MODELS.md) for requirements.
 
 ### Cloud AI
 
@@ -70,7 +72,7 @@ Text, OCR, and speech have separate defaults, and you can select a source for ea
 
 ### Gmail
 
-Bring your own **Google Desktop OAuth client configuration**. Enable Gmail API in your Google Cloud project, configure its consent screen and permitted users, then import the downloaded Desktop client JSON in **Settings → Email accounts → Advanced settings**. Follow the [Gmail setup guide](docs/guides/GMAIL_SETUP_GUIDE.md), then authorize your account in the system browser.
+Bring your own **Google Desktop OAuth client configuration**. Enable Gmail API in your Google Cloud project, configure its consent screen and permitted users, then import the downloaded Desktop client JSON in **Settings → Email accounts → Advanced settings (developers)**. Follow the [Gmail setup guide](docs/guides/GMAIL_SETUP_GUIDE.md), then authorize your account in the system browser.
 
 The repository and public release contain an empty OAuth template; no shared client or Gmail credentials are supplied. EML import and local drafts can be used without a Gmail connection. Connected mail currently supports Gmail only.
 
@@ -107,7 +109,7 @@ For the release format with FFmpeg already inside the single EXE, first prepare 
 npm run package:portable -- --with-ffmpeg
 ```
 
-This also creates `UFriend-<version>.exe`, in its own build directory. The build receipt records whether FFmpeg is included. A bundled runtime takes precedence over an older optional installation in user data. The executable includes the GPL license, third-party notices, and source information. Publish the matching complete source archive alongside the EXE; a successful binary build alone does not complete this step. See the [runtime guide](docs/development/FFMPEG_RUNTIME.md#授權與來源紀錄).
+This also creates `UFriend-<version>.exe`, in its own build directory. The build receipt records whether FFmpeg is included. A bundled runtime takes precedence over an older optional installation in user data. The executable includes the GPL license, third-party notices, and source information. Publish the matching complete source archive alongside the EXE; a successful binary build alone does not complete this step. See the [runtime guide](docs/development/FFMPEG_RUNTIME.md).
 
 To create only the folder package for ZIP distribution, use `npm run package -- --without-ffmpeg`. For a local folder package using the prepared FFmpeg runtime, use `npm run package`. Packaging does not run the full test suite or publish a release. See the [installation guide](docs/guides/INSTALL_BUILD.md) for isolated development data, UI smoke tests, prerequisites, and packaging details.
 
@@ -131,6 +133,8 @@ flowchart LR
 UGen300 integration is not implemented or verified on hardware. Device-pool timing simulations in the interface do not perform model inference. Outlook, Yahoo, and calendar integrations are also outside the current supported scope.
 
 ## Documentation and project files
+
+Project documentation is available as separate English (`.md`) and Traditional Chinese (`.zh-TW.md`) files. Each documentation index lists both versions.
 
 - [User and developer documentation](docs/README.md)
 - [Model adapter contracts](app/models/README.md)

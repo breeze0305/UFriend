@@ -1,195 +1,197 @@
-# LLM 功能與除錯指南
+# LLM features and debugging guide
 
-適用 UFriend 0.1.39。預設簡短主題摘要需 PC-LLM-API 0.1.10 或更新版，雲端支援 OpenAI 相容 API。[返回桌面使用說明](APP_README.md) · [模型來源指南](MODEL_SOURCES.md) · [PC 服務啟動指南](PC_MODELS.md)
+[English](LLM_FEATURES.md) | [繁體中文](LLM_FEATURES.zh-TW.md)
 
-設定以固定選單分為六類；視窗較窄或較矮時，分類列在內容上方。切換分類會保留當次尚未保存的表單內容，需保存的項目仍須按對應按鈕才生效；重啟只恢復已保存設定。完整入口見[設定分類](APP_README.md#設定分類)。
+Applies to UFriend 0.1.41. Default brief topic summaries require PC-LLM-API 0.1.10 or later. Cloud processing supports OpenAI-compatible APIs. [Back to the desktop user guide](APP_README.md) · [Model sources guide](MODEL_SOURCES.md) · [PC service startup guide](PC_MODELS.md)
 
-[HTML 郵件閱讀](APP_README.md#閱讀郵件)保留原信排版、圖片與連結；郵件分析仍使用純文字原文，不把 HTML 或圖片送給 LLM。搜尋、回覆與寄送也沿用既有純文字流程。
+Settings has six categories in a fixed menu. In a narrower or shorter window, the categories appear above the content. Switching categories preserves unsaved form values for the current session, but settings that require saving still need their corresponding Save button. Restarting restores only saved settings. See [Settings categories](APP_README.md#settings-categories) for all entry points.
 
-## 軟體介面語言
+[HTML email reading](APP_README.md#reading-email) preserves the original layout, images, and links. Email analysis still uses the plain-text original and does not send HTML or images to the LLM. Search, replies, and sending continue to use the existing plain-text workflow.
 
-可在「設定 → 一般 → 軟體介面語言」選繁體中文（`zh-TW`）或 English（`en`），按「保存介面語言」後即套用選單、按鈕、固定提示、系統匣與日期格式，重新開啟仍保留選擇。英文入口為「Settings → General → App language」。
+## App language
 
-介面切換只更新顯示，無須重啟，也不取消正在進行的模型工作。它不更改 LLM 常用語言（`preferredLanguage`）、來源郵件、使用者輸入或草稿、生成結果、翻譯來源／目標語言及 Prompt。譯文、外部服務回傳的錯誤與診斷內容、歷史紀錄均保留原始內容，不會因介面切換自動翻譯。
+In Settings → General → App language, choose Traditional Chinese (`zh-TW`) or English (`en`). Clicking “Save app language” immediately updates menus, buttons, fixed notices, the system tray, and date formats. The choice is retained when the app is reopened. The Traditional Chinese entry is “設定 → 一般 → 軟體介面語言.”
 
-## 先連接 PC 服務
+Switching the interface language only changes the display. It requires no restart and does not cancel active model jobs. It does not change the LLM preferred language (`preferredLanguage`), source emails, user input or drafts, generated results, translation source/target languages, or prompts. Translations, errors and diagnostic content returned by external services, and history retain their original content rather than being translated automatically.
 
-先另行取得獨立的 `PC-LLM-API` 專案，依其 README 安裝與啟動，等模型就緒。服務原始碼、模型及 runtime 不包含在 UFriend repository；環境要求見 [PC 模型指南](PC_MODELS.md)。在 UFriend 設定 → 模型與運算 → 本地選 PC API，LLM 端點填 `http://127.0.0.1:8765`，保存後按「測試連線」。各次文字任務選「本地」；端點填根網址，不加 `/v1/llm`。LLM 常用語言與個人背景需由所連接的服務支援。
+## Connect the PC service first
 
-四種文字任務共用這個服務：郵件分析、文章潤句、LLM 對話、文字翻譯。服務一次處理一筆工作；忙碌時稍後重試。主程式不下載或啟動模型，也不會在本機服務失敗後自動改送雲端。OCR／Whisper 有自己的服務，啟動方法見 [PC 指南](PC_MODELS.md)。
+Obtain the independent `PC-LLM-API` project separately, install and start it according to its README, and wait for the model to be ready. The service source, models, and runtime are not included in the UFriend repository. See the [PC models guide](PC_MODELS.md) for requirements. In UFriend → Settings → Models and compute → Local models → Local backend, choose “PC local services,” enter `http://127.0.0.1:8765` as the LLM endpoint, save it, then click “Test connection.” Choose “Local” for each text task. Enter the root URL without adding `/v1/llm`. The connected service must support the LLM preferred language and personal background features.
 
-聊天回覆的完成判斷：回傳資料或 metadata 標記截斷、未完成或非正常停止時，不會保存為完整歷史；已輸入的問題保留供重試。
+Four text tasks share this service: email analysis, writing polish, LLM chat, and text translation. It processes one job at a time; retry later if it is busy. The desktop app does not download or start models, and a failed local service does not cause an automatic switch to the cloud. OCR and Whisper have their own services; see the [PC guide](PC_MODELS.md) for startup instructions.
 
-## 郵件逐封摘要與分類
+A chat reply is considered complete only when its returned data and metadata do not indicate truncation, incompleteness, or an abnormal stop. Otherwise it is not saved as complete history, and the entered question is retained for retrying.
 
-桌面端以 [OpenCC](https://github.com/nk2028/opencc-js)（`opencc-js` 1.4.2）將郵件摘要及分級理由中的簡體中文轉為台灣繁體。先依既有流程驗證原文引文與內容，再轉換最後的摘要；分類模型收到的摘要與保存的繁體摘要一致。此步驟完全在本機執行，不增加模型呼叫。既有已保存的摘要直接以繁體顯示，無須重跑模型，也不因此更動快取或寫回舊資料。原信、主旨、寄件者、原文重點與逐字引文保持原樣；摘要內的網址、郵件地址及程式碼保留原字串。LLM 常用語言仍是對話設定，郵件摘要沿用既有的繁體中文要求。
+## Per-email summaries and categorization
 
-首頁或收件匣按「整理新增／變動郵件」，處理目前已同步到本機收件匣的新增或有變動信件，包含已讀及已標記處理完成的信。每封先請 LLM 生成重點摘要，再只將最後保存的 `summary` 請 LLM 分類。若內容檢查或模型容量出現疑慮，`summary` 可改為明確標示的「原文摘錄」；分類階段仍只收到這段文字，不另傳整封原信、原文重點或個人背景，也不以關鍵字取代分類模型。
+The desktop app uses [OpenCC](https://github.com/nk2028/opencc-js) (`opencc-js` 1.4.2) to convert Simplified Chinese in email summaries and priority reasons to Taiwan Traditional Chinese. It validates source quotations and content through the existing workflow before converting the final summary. The categorization model receives the same Traditional Chinese summary that is saved. This step runs entirely locally and adds no model calls. Previously saved summaries display in Traditional Chinese without rerunning the model, changing the cache, or writing back old data. Original emails, subjects, senders, source facts, and verbatim quotations remain unchanged. URLs, email addresses, and code in summaries retain their original strings. LLM preferred language remains a chat setting; email summaries retain the existing Traditional Chinese requirement.
 
-摘要前會把主旨與純文字內文中的 `http://`、`https://` 及明確的 `www.` 網址替換成 `【網址】`，縮短冗長網址占用的模型空間。本地與雲端都使用這份精簡副本；原信、HTML 閱讀、完整連結、附件、搜尋及回覆保留原有內容，程式也不會開啟網址讀取網頁。模型引文會對回原始文字；跨越過長網址的引文改以網址前後的原文片段呈現。同一段文字含有不同網址時，只有各個匹配位置去掉程式替換的網址後，剩餘原文片段完全一致，才保留那些共同文字；不猜測是哪個連結，也不把網址兩側拼成新句。無法核對時仍明確顯示失敗。
+On the home page or inbox, click “Organize new / changed mail” to process new or changed messages currently synchronized to the local inbox, including read messages and those already marked handled. The LLM first generates a summary for each email, then categorizes only the final saved `summary`. If content checks or model capacity raise concerns, `summary` may become explicitly labeled “Source excerpts.” Categorization still receives only that text, without the full original email, source facts, or personal background. Keywords do not replace the categorization model.
 
-郵件摘要只整理本次郵件最上方的正文：遇到可辨識的回覆標頭、轉寄分隔或引用舊文即停止，後續引用與回覆不納入模型輸入、原文重點或補救摘錄。常見 Gmail／Outlook 引用格式可辨識；沒有明確邊界的內容仍可能保留。原信閱讀區保持完整。預設只用一個簡短主題或用途短語，例如「影音內容推薦」「付款完成通知」「會議取消通知」。通常以約 4～15 個中文字表達大致方向，不逐項列出日期、金額、人名、推薦清單或操作步驟，也不加入「這封信是關於」等開場句，或照抄稱呼與「為您精選」等模糊主旨。這是生成目標，不會硬截斷較長輸出；已完成、取消等會改變主要意思的狀態仍需正確。摘要不重建對話、不列寄收件角色，也不新增閱讀、回信或購買待辦。正文優先；Re／Fw／Fwd 與可辨識中文回覆、轉寄前綴的沿用主旨也不交給摘要，避免舊事件蓋過短正文。排除後沒有可用主旨或正文時會明確失敗；普通新信主旨保留作為背景。圖片未辨識時，提示要求不猜測內容。自訂 Prompt 的文字仍依使用者設定，分析範圍同樣限制為最上方正文。
+Before summarization, `http://`, `https://`, and explicit `www.` URLs in the subject and plain-text body are replaced with `【網址】` to reduce the model space consumed by long URLs. Both local and cloud processing use this shortened copy. Original messages, HTML reading, complete links, attachments, search, and replies retain their content. The app does not open those URLs to read web pages. Model quotations are matched back to the original text. Quotations that cross excessively long URLs are displayed as original fragments before and after the URL. If the same text contains different URLs, shared text is retained only when the remaining source fragments are identical after removing the program-replaced URLs at each matching position. The app does not guess which link was intended or join the text on either side into a new sentence. A quotation that cannot be verified still produces an explicit failure.
 
-郵件整理先嘗試產生本次正文摘要；若輸入超過容量、回答達到輸出上限，或偵測到重複生成，會自動改為分段處理。每段選取重要原文，並保留可辨識的日期、金額、狀態、條件及相鄰上下文；不只保留模型最先選到的八行。候選內容仍超過彙整容量時，再從候選原文中選取，最後統一產生摘要、理由與優先程度。各段不先生成摘要，也不把多段摘要直接拼接。畫面會顯示「已完成 i / n 段」與彙整狀態，可隨時取消。
+Email summaries cover only the current message's top-level body. Input stops at recognizable reply headers, forwarding separators, or quoted older text; subsequent quotations and replies are excluded from model input, source facts, and fallback excerpts. Common Gmail/Outlook quotation formats are recognized, but text without clear boundaries may remain. The original reading area stays complete. By default, a summary is a single short topic or purpose phrase, such as “影音內容推薦” (“Media recommendations”), “付款完成通知” (“Payment confirmation”), or “會議取消通知” (“Meeting cancellation”). The target is usually about 4–15 Chinese characters expressing the broad topic, without listing dates, amounts, people, recommendation lists, or action steps. It should not add an introduction such as “This email is about,” copy a salutation, or repeat a vague subject such as “Selected for you.” This is a generation target, not a hard truncation of longer output. States that change the main meaning, such as completed or canceled, must still be correct. A summary does not reconstruct the conversation, list sender/recipient roles, or invent tasks to read, reply, or buy. The body takes precedence. Re/Fw/Fwd and recognizable Chinese reply/forward prefixes also cause the inherited subject to be excluded, so an older event does not override a short current body. If no usable subject or body remains, processing fails explicitly. Ordinary new-message subjects are retained as context. If images have not been recognized, the prompt instructs the model not to guess their content. Custom prompt wording remains user-defined, but its analysis scope is also restricted to the top-level body.
 
-若分段選文或彙整仍遇到輸入／輸出容量上限，且能取得可核對的來源文字，會保存標為「原文摘錄」的內容並將模型分級標為「待核對」。這不是模型已完成的生成摘要，也不是中途回答的片段。取消、逾時、格式錯誤及無法還原引文仍顯示失敗；沒有可用來源片段時也不能以摘錄補救。分段有容量、呼叫次數與時間上限，重要原文的保留也有上限，不能保證所有語意與細節都被涵蓋。
+Email organization first tries to summarize the current body. If input exceeds capacity, the response reaches the output limit, or repetitive generation is detected, it automatically switches to chunked processing. Each chunk selects important original text and retains identifiable dates, amounts, states, conditions, and adjacent context; it does not keep only the first eight lines selected by the model. If candidate text still exceeds composition capacity, it selects again from the candidate source text, then produces a combined summary, reason, and priority. Chunks are not summarized individually, and separate chunk summaries are not simply concatenated. The UI shows “Completed i / n segments” and the composition state, with cancellation available at any time.
 
-摘要卡片只顯示已保存的摘要文字及分類，不再呈現原文重點、引文、品質提示、模型建議、理由或產生資訊；不截斷摘要，也不要求重新分析既有信件。完整原信仍在下方。分析保存的 `sourceFacts`、引文與品質資料仍供既有流程使用，顯示簡化不改變分級或分類結果。摘要以快速辨認本次正文的主題或用途為目標，不以追蹤寄信回信流程為重點。不會只因漏掉日期、金額、優惠門檻或引文用詞不同，就把摘要換成大段原文；這些訊號仍保存在分析資料中。偵測到摘要新增幣別、數字錯配、虛構附件、明確條件矛盾等情形時，仍可改存原文摘錄。只有待辦理由有問題時，保留摘要並要求核對分級。檢查範圍有限，摘要仍需依原信核對；原文重點容量不足本身不否定摘要。
+If chunk selection or composition still reaches an input/output limit and verifiable source text is available, the app saves content labeled “Source excerpts” and marks the model priority as “Needs review.” This is neither a completed model-generated summary nor a fragment of an interrupted answer. Cancellation, timeouts, format errors, and quotations that cannot be restored still fail. Excerpts cannot rescue a request without usable source fragments. Chunking has capacity, call-count, and time limits, and the amount of important source text retained is also bounded. Coverage of all meanings and details is not guaranteed.
 
-分級有疑慮時顯示「待核對」，不套用模型給的 0／1／2；已由本人手動設定的分級保留。主題分類、本人寄出的郵件，或內文沒有「請」等要求字詞，都不能單獨證明今天沒有待辦；系統不據此直接改判為「稍後處理」。
+The summary card shows only the saved summary text and category. It no longer displays source facts, quotations, quality notices, model suggestions, reasons, or generation details. It does not truncate the summary or require existing messages to be analyzed again. The full original remains below. Saved `sourceFacts`, quotations, and quality data remain available to the existing workflow; simplifying the display does not change priority or category results. The summary aims to identify the current body's topic or purpose quickly, rather than trace the send/reply sequence. Missing a date, amount, promotion threshold, or using different wording from a quotation does not alone replace the summary with a long original excerpt; those signals remain in the analysis data. Added currencies, mismatched numbers, fabricated attachments, or explicit contradictions in conditions can still cause a fallback to source excerpts. If only the task reason is problematic, the summary remains and priority review is required. Checks are limited, so compare the summary with the original. A capacity limit on source facts does not by itself invalidate the summary.
 
-待辦佐證檢查涵蓋帶行首裝飾的否定提醒，以及「如有疑問／想查看詳情」等選用自助查詢。這些文字不能單獨證明本人今天需要處理。「如果付款失敗，請聯絡客服」等尚未確認條件是否成立的要求，則保留為待核對；已明確交辦的工作與獨立的後續要求仍保留供判讀。此檢查只能將有疑慮的模型分級標為待核對，不替模型指定另一個分級。
+An uncertain priority is shown as “Needs review” without applying the model's 0/1/2 value. Priorities manually set by the user are preserved. A topic category, a message sent by the user, or the absence of request wording such as “please” does not alone prove that there is no task today. The system does not directly change the result to “Handle later” on that basis.
 
-目前正文中已知尚未辨識的郵件圖片仍記錄為未讀狀態（已辨識引用區及其後方的圖片不納入），即使同一封信已有很多可讀文字。圖片與附件分開記錄；摘要卡片不再顯示這些附加提示。閱讀時載入圖片不代表已完成 OCR，郵件整理不會自動讀取遠端圖片或附件全文，相關內容需另行核對。
+Task-evidence checks include negative reminders with decorative prefixes and optional self-service wording such as “If you have questions” or “To view details.” Such text alone cannot prove that the user needs to act today. Conditional requests whose condition has not been confirmed, such as “If payment fails, contact customer support,” remain subject to review. Explicit assignments and independent follow-up requests remain available for interpretation. This check can only mark an uncertain model priority as needing review; it does not choose a different priority for the model.
 
-摘要快取格式與目前規則不相容時，下次「整理新增／變動郵件」會重新處理；不直接改寫原信。快取包含原始文字／網址、寄件者地址、附件／圖片內容狀態、收件者身分、有效設定及台北日期。同一台北日內資料與設定未變的成功結果略過；隔日再次整理會重新判讀當天待辦。原始網址變動仍會觸發更新，即使替換後文字相同。
+Known, unrecognized email images in the current body remain recorded as unread content, even when the same message contains plenty of readable text. Images in or after an identified quotation section are excluded. Images and attachments are tracked separately, and these additional notices no longer appear on the summary card. Loading an image for reading does not mean OCR has run. Email organization does not automatically read remote images or full attachment content; those require separate checking.
 
-| 類別 | 適用內容 |
+If a summary cache format is incompatible with the current rules, the next “Organize new / changed mail” run processes it again without directly rewriting the original email. The cache includes original text/URLs, sender address, attachment/image content status, recipient identity, effective settings, and the Taipei calendar date. Successful results are skipped when their data and settings have not changed within the same Taipei day. Organizing again the next day reassesses that day's tasks. A change to an original URL still triggers an update even if the URL-replaced text is identical.
+
+| Category | Content |
 | --- | --- |
-| 工作與協作 | 專案、交付、工作討論及合作事項。 |
-| 會議與活動 | 會議邀請、時間調整、活動及報名資訊。 |
-| 帳務與交易 | 帳單、付款、訂單、退款及交易通知。 |
-| 帳號與服務 | 登入、安全驗證、帳號或服務狀態。 |
-| 行銷與電子報 | 促銷、訂閱電子報與推廣內容。 |
-| 個人往來 | 家人、朋友及一般私人訊息。 |
-| 其他 | 模型判斷不適用上述主題的內容。 |
+| Work and collaboration | Projects, deliverables, work discussions, and collaboration. |
+| Meetings and events | Meeting invitations, schedule changes, events, and registration information. |
+| Billing and transactions | Bills, payments, orders, refunds, and transaction notices. |
+| Accounts and services | Sign-in, security verification, and account or service status. |
+| Promotions and newsletters | Promotions, subscribed newsletters, and promotional content. |
+| Personal correspondence | Family, friends, and ordinary private messages. |
+| Other | Content the model determines does not fit the topics above. |
 
-收件匣會顯示摘要及類別，並可依類別篩選；「未分類」包含尚未整理與分類未成功的信件，與「其他」不同。開信可查看摘要文字及類別，完整內容在下方原信閱讀區。整理操作與整批進度集中在首頁、收件匣；郵件內頁不提供單封重新整理，閱讀期間仍會更新背景整理完成的結果。主題類別不取代處理急迫程度。
+The inbox displays summaries and categories and supports filtering by category. “Unclassified (pending or failed)” includes messages not yet organized or whose categorization failed; it is different from “Other.” Open an email to view its summary and category, with the full content in the original-message reading area below. Organization controls and batch progress are on the home page and inbox. The email detail view does not offer single-message reorganization, but results completed in the background still update while you read. Topic categories do not replace handling urgency.
 
-分類提示使用明確的分類說明與合成範例，協助模型區分工作往來、交易憑證與活動行銷。分類仍只讀最終摘要；摘要誤讀原信時，分類也可能跟著出錯。檢查若發現摘要混入原信沒有的內部欄位名稱（如 referenceTime、evidenceIds），會改用原文摘錄並要求核對；僅理由出現此問題時只暫停套用分級，此檢查只涵蓋指定欄位。
+The categorization prompt uses explicit category descriptions and synthetic examples to help distinguish work correspondence, transaction records, and event marketing. It still reads only the final summary, so a misread summary can also lead to a wrong category. If checks find an internal field name absent from the original, such as referenceTime or evidenceIds, inserted into the summary, the app uses source excerpts and requires review. If only the reason has this problem, only priority application is withheld. This check covers specified fields only.
 
-可用摘要或已標示的原文摘錄先保存；後續分類失敗或取消時仍可查看。同日且其他輸入未變時，下次批次可用已保存文字重試分類。已讀、星號、標籤、人工分級或已處理標記不會單獨觸發重算。每批固定一個參考時間與台北日期，即使途中跨午夜也不改變同批的判斷基準；後續新批次才採用新日期。無法完成的個別信件顯示錯誤，其他信件繼續整理。
+A usable summary or labeled source excerpts are saved first and remain viewable if later categorization fails or is canceled. On the same day, with other inputs unchanged, the next batch can retry categorization using the saved text. Read status, stars, labels, manual priority, and handled markers do not by themselves trigger recalculation. Each batch fixes one reference time and Taipei date, even if it crosses midnight. Only a later new batch uses the new date. An individual email that cannot finish shows an error while other messages continue.
 
-本地簡短主題摘要須先更新並重新啟動 PC-LLM-API 0.1.10 或更新版；分段流程維持既有 `mail-select`／`mail-compose` 契約；舊服務拒絕所需任務時會明確提示升級。只更新服務程式不必重新下載模型。雲端使用相同分段流程，任務全程沿用開始時選擇的來源，不自動切換本地或雲端。一般全文摘要沿用「郵件分析」自訂 Prompt 與已啟用的個人背景；分段選文、彙整及分類使用固定提示，不附加個人背景或自訂 Prompt，也不列入四種公開 Prompt 設定。
+For local brief topic summaries, update and restart PC-LLM-API 0.1.10 or later. Chunking retains the existing `mail-select`/`mail-compose` contracts. If an older service rejects a required task, the app explicitly asks for an upgrade. Updating service code alone does not require downloading the model again. Cloud processing uses the same chunking workflow and retains the source selected at the start throughout the task; it never switches automatically between local and cloud. Ordinary full-text summarization uses the custom “Email analysis” prompt and enabled personal background. Chunk selection, composition, and categorization use fixed prompts without personal background or custom prompts and are not among the four public prompt settings.
 
-## 每日自動整理
+## Daily automatic organization
 
-「設定 → 郵件帳戶 → 每日郵件整理」可啟用並設定每天的 `HH:mm`，按保存後生效；初次使用未啟用，時間預填 09:00。每天先同步已連接帳戶，再整理本機收件匣中需要更新的信件，採用開始時的文字 LLM 預設來源。部分帳戶同步失敗時仍整理本機可用信件，設定頁會顯示錯誤而不宣稱完整同步成功。
+Settings → Email accounts → “Daily email organization” lets you enable the feature and choose a daily `HH:mm` time. Save to apply it. It is disabled on first use, with 09:00 prefilled. Each day it first synchronizes connected accounts, then organizes messages in the local inbox that need updating, using the default text LLM source at the start. If synchronization fails for some accounts, it still organizes locally available messages. Settings shows the error rather than claiming that all accounts synchronized successfully.
 
-排程使用電腦時區，UFriend 必須保持開啟或在系統匣執行。休眠或關閉程式期間錯過時間，當天恢復後補做一次；不追補多天、不喚醒電腦，也不自動開啟已結束的程式。當天時間已過才啟用也會補做。若正在同步、手動整理、對話、翻譯或潤句，等到空閒才開始。自動整理開始同步後會保留文字模型執行權，新的文字工作須等整理完成再開始。
+The schedule uses the computer's time zone, and UFriend must remain open or in the system tray. If the scheduled time is missed while the computer sleeps or the app is closed, it runs once when the app resumes that day. It does not catch up multiple days, wake the computer, or launch an app that has been quit. Enabling it after today's scheduled time also triggers a catch-up attempt. If sync, manual organization, chat, translation, or writing polish is active, it waits until idle. Once automatic organization starts synchronizing, it reserves access to the text model; new text jobs must wait until organization finishes.
 
-每天最多自動嘗試一次；執行日期會先保存，重啟、修改時間或暫時關閉再開啟排程都不會重複觸發當天。失敗或執行中斷可手動重試，設定頁保留最近一次自動整理時間、狀態與原因。停用只阻止後續排程，當前整理可從郵件頁取消。
+There is at most one automatic attempt per day. The run date is saved before execution, so restarting, changing the time, or briefly disabling and re-enabling the schedule does not trigger another attempt that day. Failed or interrupted runs can be retried manually. Settings retains the latest automatic organization time, status, and reason. Disabling the schedule only prevents future runs; the current organization can be canceled from the email page.
 
-## 手動產生文章潤句
+## Generating polished writing manually
 
-在「文章潤句」填寫想表達的內容，選用途與語氣，再按「產生文字」。輸入、中文選字及調整選項只保存草稿，不會自行呼叫模型。生成途中修改原文或選項會取消舊工作、清除舊結果；需再次按按鈕才生成。離開頁面會保存編輯，未變更內容時不會取消正在生成的工作。
+In “Writing polish,” enter what you want to express, select the purpose and tone, then click “Generate text.” Typing, composing text with a Chinese input method, and changing options only save the draft; they do not call the model automatically. Changing the source or options during generation cancels the old job and clears the old result. Click the button again to generate a new result. Leaving the page saves edits and does not cancel generation when the content has not changed.
 
-## LLM 常用語言
+## LLM preferred language
 
-設定 → 一般 →「LLM 常用語言」可選繁體中文、簡體中文、English、日本語、한국어、Español、Français、Deutsch，按「保存語言」生效。預設繁體中文；LLM 對話會優先使用這個語言，明確要求其他語言時依提問處理。保存不同的 LLM 常用語言會停止正在生成的聊天，保留原問題；已完成的聊天紀錄不改寫。這項設定不更改介面語言、翻譯目標或其他任務的語言。
+Settings → General → “LLM preferred language” offers Traditional Chinese, Simplified Chinese, English, Japanese, Korean, Spanish, French, and German. Click “Save language” to apply it. Traditional Chinese is the default. LLM chat prefers this language unless the question explicitly requests another. Saving a different preferred language stops the response being generated and preserves the original question. Completed chat history is not rewritten. This setting does not change the interface language, translation target, or language of other tasks.
 
-## 個人背景
+## Personal background
 
-設定 →「個人資訊」可填姓名、電話、常用 Email、公司 Email、公司、職稱與補充背景，全部可留白。按「保存個人資訊」後，啟用的非空欄位會作為 LLM 對話、文章潤句及郵件一般全文摘要的背景；翻譯、郵件分段選文、彙整及分類不附加這些欄位。取消提供背景的勾選並保存，可停用而保留表單資料；清空欄位後保存可移除內容。
+Settings → “Personal information” accepts a name, phone, personal email, work email, company, job title, and additional background. Every field is optional. After “Save personal information,” enabled nonempty fields are included as background for LLM chat, writing polish, and ordinary full-text email summarization. They are not attached to translation, email chunk selection, composition, or categorization. Clear the sharing checkbox and save to disable sharing while keeping the form data; clear a field and save to remove its content.
 
-背景資料只用於協助理解，不改變真實郵件帳號／收件者、原文引文要求或寄信權限。不要在補充背景填入密碼、API Key 或要求模型執行的系統指示。資料保存於本機工作空間 `state.json`；啟用後，執行相關任務時才傳給該次選擇的本地或雲端 LLM，診斷不記錄欄位全文。更改有效背景會停止使用舊背景的聊天、潤句及郵件分析，保留原始內容。
+Background only helps interpretation. It does not change real email accounts/recipients, source-quotation requirements, or sending permissions. Do not put passwords, API keys, or system instructions for the model in Additional background. Data is stored in the local workspace's `state.json`. When sharing is enabled, it is sent to the local or cloud LLM selected for the task only when a relevant task runs. Diagnostics do not record the full field contents. Changing effective background stops chat, writing polish, and email analysis jobs using the old background while preserving their original content.
 
-停用背景只影響之後的請求。先前聊天可能已含個人資訊，這些歷史仍會隨同一段對話送出；要測試停用效果，請新增對話。Qwen 1.5B 的語言遵循仍有限制，尤其中文提問同時帶英文偏好與個人背景時可能回中文；可在提問中明確指定。八種選項不代表所有語言均已完成品質評估。
+Disabling background only affects future requests. Earlier chat messages may already contain personal information, and that history is still sent within the same conversation. Start a new conversation to test the effect of disabling it. Qwen 1.5B still has limits in following language preferences. In particular, a Chinese question combined with an English preference and personal background may receive a Chinese reply; explicitly state the desired language in the question. Eight available options do not mean that quality has been evaluated for all eight languages.
 
-## 文字翻譯
+## Text translation
 
-1. 從左側開啟「文字翻譯」。
-2. 選「來源語言」及「目標語言」。來源預設自動偵測，目標預設繁體中文。
-3. 在「原文」輸入文字，按「開始翻譯」。
-4. 完成後核對右側譯文，再按「複製譯文」。
+1. Open “Text translation” from the left navigation.
+2. Select “Source language” and “Target language.” The source defaults to automatic detection; the target defaults to Traditional Chinese.
+3. Enter text in “Original text” and click “Translate.”
+4. Check the translation on the right, then click “Copy translation.”
 
-來源可選自動偵測、繁體中文、簡體中文、English、日本語、한국어、Español、Français、Deutsch；目標可選相同八種語言，不提供自動偵測。語言名稱代表請求設定，模型仍可能翻錯專有名詞、語意或字體，使用前應核對。
+Source options are automatic detection, Traditional Chinese, Simplified Chinese, English, Japanese, Korean, Spanish, French, and German. The target offers the same eight languages without automatic detection. The language names specify the request; the model can still mistranslate proper names, meaning, or the writing system. Check the result before using it.
 
-原文最多 16,000 個 JavaScript 字元，實際還受 token 預算限制。超限時分段翻譯，服務不會默默裁掉後半段。翻譯中可取消；更改原文或任一語言會清除舊譯文，晚到結果不會覆蓋新輸入。原文、語言及成功譯文保存在目前工作空間，不會加入聊天歷史。
+Source text is limited to 16,000 JavaScript characters and is also subject to the token budget. Translate in parts when it exceeds capacity; the service does not silently cut off the latter part. Translation can be canceled. Changing the source text or either language clears the old result, and late responses cannot overwrite new input. Source text, languages, and successful translations are saved in the current workspace without entering chat history.
 
-## 多段對話與即時回覆
+## Multiple conversations and live replies
 
-在「LLM 對話」輸入問題。Enter 傳送，Shift＋Enter 換行；中文輸入法選字時按 Enter 不會送出。新回覆會逐段顯示，在完成前標為「生成中 · 尚未完成」。閱讀較早內容時不會持續把畫面拉回底部；回到底部可跟隨最新文字。
+Enter a question in “LLM chat.” Enter sends it; Shift+Enter adds a line break. Pressing Enter while selecting characters with a Chinese input method does not send the question. New replies appear incrementally and are marked as generating and incomplete until finished. Reading older content does not continually pull the view to the bottom; return to the bottom to follow the newest text.
 
-右上角「聊天紀錄」開啟對話清單；窄視窗按鈕可能簡寫為「紀錄」。各段對話分別保存成功問答、草稿與名稱，不會把其他對話的內容送入這一段。
+“Chat history” at the top right opens the conversation list; the label may shorten to “History” in a narrow window. Each conversation saves its successful exchanges, draft, and name separately. Content from other conversations is not sent with this one.
 
-| 操作 | 行為 |
+| Action | Behavior |
 | --- | --- |
-| 新增對話 | 目前沒有訊息、非空白草稿或待回覆問題時停用，只有空格也算空白；有內容時可建立新對話，保留原草稿。若目前正在生成，先停止並保留原問題。 |
-| 點選另一段對話 | 保存目前草稿，再開啟選定紀錄；**切換對話會停止目前生成**。 |
-| 重新命名 | 按該列鉛筆圖示，輸入 1～80 字元的單行名稱後保存。 |
-| 刪除對話 | 按該列垃圾桶並確認，移除這段訊息與草稿；刪除目前對話會停止生成。刪除最後一段後保留新的空白對話。 |
-| 停止 | 結束當前生成，保留問題供修改或重送。 |
-| 複製回覆 | 複製已成功完成的那一則答案。 |
+| New conversation | Disabled when the current conversation has no messages, nonblank draft, or pending question. Spaces alone count as blank. When there is content, a new conversation can be created while preserving the original draft. If generation is active, it is stopped first and the original question is retained. |
+| Select another conversation | Saves the current draft and opens the selected history. **Switching conversations stops current generation.** |
+| Rename | Click the row's pencil icon, enter a single-line name of 1–80 characters, and save. |
+| Delete conversation | Click the row's trash icon and confirm to remove its messages and draft. Deleting the active conversation stops generation. Deleting the last one leaves a new empty conversation. |
+| Stop | Ends current generation and preserves the question for editing or resending. |
+| Copy reply | Copies that successfully completed answer. |
 
-刪除無法復原。需要移除內容時，從聊天紀錄刪除整段對話；刪除最後一段後仍保留一個空白對話，此時「新增對話」停用。初次成功回答後，「新對話」會以首個問題產生名稱；也可自行重新命名。既有工作空間的單一對話會保留於聊天紀錄，不需要手動匯出再匯入。
+Deletion cannot be undone. To remove content, delete the entire conversation from Chat history. Deleting the last conversation still leaves one empty conversation, with “New conversation” disabled. After the first successful answer, “New conversation” is named from its first question; you can also rename it yourself. A single conversation from an existing workspace is retained in Chat history without manual export and reimport.
 
-要一次清空全部對話，開啟設定 → 一般 → 資料清理 →「刪除全部對話紀錄」。確認視窗會顯示對話與訊息數量，可按「取消」；確認刪除會停止目前生成，移除所有對話、訊息與未送出草稿，並同步清除本機自動備份中的對應資料。完成後保留一個空白「新對話」，可直接輸入問題繼續使用。失敗原因顯示於確認視窗內，可重試；刪除後無法從程式復原。
+To clear all conversations, open Settings → General → Data cleanup → “Delete all chat history.” The confirmation dialog shows conversation and message counts and offers “Cancel.” Confirming stops current generation, removes all conversations, messages, and unsent drafts, and removes corresponding data from local automatic backups. One empty “New conversation” remains so you can keep using chat immediately. Failure reasons appear in the dialog and allow a retry. Deleted data cannot be restored by the app.
 
-串流使用模型真正送出的 SSE delta，完整完成事件到達前都是預覽。停止、逾時、輸出上限或中途斷線後，未完成文字不作為成功答案保存，也不帶入下一輪歷史；原問題保留。程式重新啟動也不會把上次中斷的回答當成成功紀錄。
+Streaming uses actual SSE deltas from the model; all text is a preview until the complete finish event arrives. After a stop, timeout, output limit, or interrupted connection, incomplete text is not saved as a successful answer or included in the next turn's history. The original question is retained. Restarting the app also does not turn an interrupted answer into a successful record.
 
-每次請求可帶最多 31 則交替訊息，單則最多 16,000 字元，總和最多 64,000 字元。更早遇到模型 token 上限時，新增對話或縮短問題；服務不會自動刪除較早的歷史來假裝容納完整內容。聊天處理目前對話及啟用的個人背景，沒有讀取信箱、錄音、檔案或執行工具的權限。
+A request may contain up to 31 alternating messages, at most 16,000 characters per message, and at most 64,000 characters in total. If the model token limit is reached sooner, start a new conversation or shorten the question. The service does not automatically discard older history and pretend the complete conversation fits. Chat processes the current conversation and enabled personal background; it has no permission to read the mailbox, recordings, or files, or execute tools.
 
-## 設定 → Prompt 設定
+## Settings → Prompt settings
 
-設定 → Prompt 設定，按「開啟 Prompt 除錯」。四種任務分別設定：郵件分析、文章潤句、LLM 對話、文字翻譯。除錯頁的「返回設定」會回到「Prompt 設定」分類。
+Open Settings → Prompt settings and click “Open prompt debugger.” Configure the four tasks separately: email analysis, writing polish, LLM chat, and text translation. “Back to settings” in the debugger returns to the Prompt settings category.
 
-1. 確認上方「預設來源」是目前要使用的 PC 服務。
-2. 等待頁面從 `GET /v1/prompts` 讀取預設內容；需要更新服務內容時按「重新讀取預設」。
-3. 選取任務，編輯「System 指示」與「User 模板」。
-4. 按「保存『任務名稱』Prompt」，才會把變更保存到目前工作空間；下一次該任務請求會帶入這份設定。郵件的分段選文、彙整與分類仍使用固定提示。
-5. 要還原時，按「恢復『任務名稱』預設」，移除該任務的本機覆寫，後續使用服務預設。
+1. Confirm that “Defaults from:” at the top is the PC service you intend to use.
+2. Wait for the page to load defaults from `GET /v1/prompts`. Click “Reload defaults” when you need to refresh the service content.
+3. Select a task and edit “System instructions” and “User template.”
+4. Click “Save {task name} prompt” to save changes to the current workspace. The next request for that task includes these settings. Email chunk selection, composition, and categorization still use fixed prompts.
+5. To restore defaults, click “Reset {task name} defaults.” This removes that task's local override, and subsequent requests use the service defaults.
 
-服務未啟動、版本過舊或預設讀取失敗時，先修正連線再重新讀取，不會用空白內容覆寫已保存設定。重新讀取預設不等於保存，也不會刪除已保存的自訂 Prompt。編輯後尚未保存的草稿不能當成已持久保存；重新開啟程式以已保存設定為準。
+If the service is stopped, too old, or fails to return defaults, fix the connection and reload. Blank content does not overwrite saved settings. Reloading defaults does not save them or delete a saved custom prompt. An edited but unsaved draft is not persistent; reopening the app uses saved settings.
 
-System 指示可空白，最多 12,000 字元；User 模板必須非空，最多 16,000 字元，且包含必要變數。保存或恢復某任務的 Prompt 時，該任務正在執行的工作會停止，從下一筆請求使用新設定；保存 Prompt 不會重新改寫既有成功結果。
+System instructions may be blank and are limited to 12,000 characters. The User template must be nonempty, no longer than 16,000 characters, and contain the required variable. Saving or resetting a task's prompt stops active work for that task, and the next request uses the new settings. Saving a prompt does not rewrite existing successful results.
 
-| 任務 | 可用變數 | User 模板必須包含 |
+| Task | Available variables | Required in User template |
 | --- | --- | --- |
-| 郵件分析 | `referenceTime`、`date`、`recipient`、`sender`、`to`、`cc`、`lines` | `{{lines}}` |
-| 文章潤句 | `text`、`use`、`tone` | `{{text}}` |
-| LLM 對話 | `text` | `{{text}}` |
-| 文字翻譯 | `text`、`sourceLanguage`、`targetLanguage` | `{{text}}` |
+| Email analysis | `referenceTime`, `date`, `recipient`, `sender`, `to`, `cc`, `lines` | `{{lines}}` |
+| Writing polish | `text`, `use`, `tone` | `{{text}}` |
+| LLM chat | `text` | `{{text}}` |
+| Text translation | `text`, `sourceLanguage`, `targetLanguage` | `{{text}}` |
 
-`{{name}}` 會替換成 JSON 編碼的資料值，不要再替變數加引號。例如聊天 User 模板可寫：
+`{{name}}` is replaced with a JSON-encoded data value. Do not add quotation marks around a variable. For example, a chat User template can be:
 
 ```text
-請依序說明重點並保留程式碼換行。問題：{{text}}
+Explain the key points in order and preserve line breaks in code. Question: {{text}}
 ```
 
-`text` 在聊天只代表本次最新問題，較早問答仍以原來角色傳送；翻譯的語言變數則是可讀名稱，例如英文、繁體中文（台灣）。郵件 `lines` 包含行號與原文，供模型選擇引用。未知變數、缺少必要變數或不完整的雙大括號會拒絕保存／請求。
+For chat, `text` means only the latest question; earlier exchanges are still sent with their original roles. Translation language variables are human-readable names, such as English or Traditional Chinese (Taiwan). Email `lines` includes line numbers and original text from which the model selects quotations. Unknown variables, missing required variables, and incomplete double braces cause saving or the request to be rejected.
 
-Prompt 調整只影響模型指示，不會取消輸出容量、郵件原文引用、潤句數字／占位符或完整生成檢查。郵件／潤句須維持原本 JSON 輸出要求；使用預設作為修改起點較容易定位錯誤。聊天與翻譯直接生成文字，不必要求模型再包一層 JSON。
+Prompt changes affect model instructions only. They do not disable output capacity limits, source-quotation checks for email, number/placeholder checks for writing polish, or complete-generation checks. Email and writing polish must retain their original JSON output requirements. Starting from the defaults makes errors easier to identify. Chat and translation generate text directly and do not need an extra JSON wrapper.
 
-## 容量與錯誤排查
+## Capacity and troubleshooting
 
-本指南對應的 PC-LLM-API context 為 8,192 tokens。預設郵件全文摘要與郵件彙整各預留 1,536 output tokens，生成摘要需少於 1,000 字元、理由少於 160 字元；分段選文預留 1,024 output tokens，每次可選 0～64 行，彙整的引用仍為 1～8 行。自訂 Prompt 的一般 `mail` 保留原有 512-token 輸出契約；潤句與分類也預留 512，聊天／翻譯預留 4,096。System、模板、適用的語言／個人背景、原文及所有歷史都計入預算；這不是可直接貼入同數量字元的上限。技術上限見[模型介面說明](../../app/models/README.md#工作生命週期)。
+The PC-LLM-API context covered by this guide is 8,192 tokens. Default full-text email summarization and email composition each reserve 1,536 output tokens. A generated summary must be shorter than 1,000 characters, and its reason shorter than 160. Chunk selection reserves 1,024 output tokens and can select 0–64 lines per call; composition still uses 1–8 quotation lines. Ordinary `mail` with a custom prompt retains its original 512-token output contract. Writing polish and categorization also reserve 512 tokens, while chat/translation reserve 4,096. System instructions, templates, applicable language/personal background, source text, and all history count toward the budget. This is not a limit allowing you to paste the same number of characters. See the [model interface documentation](../../app/models/README.md#task-lifecycle) for technical limits.
 
-先看錯誤說明，再記下錯誤代碼與可取得的 request ID。request ID 用來把同一次桌面操作對上 PC 服務紀錄，不需要分享原文才能定位技術失敗。
+Read the error explanation first, then note the error code and any available request ID. A request ID matches the same desktop action to the PC service logs, so technical failures can be located without sharing the original content.
 
-| 錯誤代碼 | 意義與下一步 |
+| Error code | Meaning and next step |
 | --- | --- |
-| `MODEL_API_UNAVAILABLE` | LLM 服務未就緒、端點錯誤或服務中斷；先啟動服務並測試連線。 |
-| `MODEL_API_BUSY` | 另一筆文字任務正在處理；等它完成或取消後重試。 |
-| `MODEL_INPUT_TOO_LONG` | 輸入超過容量或有限分段範圍。郵件會依可用來源嘗試保存標示的原文摘錄；仍顯示此錯誤時原文保留。其他文字任務可縮短問題、新增對話或分段翻譯。 |
-| `MODEL_OUTPUT_LIMIT` | 生成達到輸出上限，未完成回答不保存為生成摘要。郵件分段仍超限時可改存原文摘錄並標待核對；無法取得可核對摘錄則保留錯誤。 |
-| `MODEL_API_INCOMPATIBLE` | 服務不支援所需任務或回應格式；核對 [PC 服務版本與介面](PC_MODELS.md)，更新相容服務並正常重啟。 |
-| `MODEL_STREAM_INTERRUPTED` | 串流沒有完整結束；確認服務仍在，再重送保留的問題。 |
-| `MODEL_API_TIMEOUT` | 處理超過時限；原文保留，確認服務狀態後縮小內容重試。 |
-| `MODEL_INVALID_OUTPUT` | 結構、原文依據或完整性檢查未通過；自訂 Prompt 可先恢復預設，再依 request ID 檢查失敗階段。 |
-| `MODEL_INVALID_REQUEST` | 任務欄位或 Prompt 格式不符；核對必要變數與字元上限。 |
-| `MODEL_REVIEW_REQUIRED` | 郵件包含明確模型控制文字而未分析；保留原文並人工確認。 |
+| `MODEL_API_UNAVAILABLE` | The LLM service is not ready, the endpoint is wrong, or the service stopped. Start it and test the connection. |
+| `MODEL_API_BUSY` | Another text task is running. Wait for it to finish or cancel it, then retry. |
+| `MODEL_INPUT_TOO_LONG` | Input exceeds capacity or the bounded chunking range. Email processing tries to save labeled source excerpts when source text is available. If this error remains, the original is preserved. For other text tasks, shorten the question, start a new conversation, or translate in parts. |
+| `MODEL_OUTPUT_LIMIT` | Generation reached its output limit. An incomplete answer is not saved as a generated summary. If chunked email processing still exceeds the limit, it can save source excerpts and mark the priority for review. Without verifiable excerpts, the error remains. |
+| `MODEL_API_INCOMPATIBLE` | The service does not support the required task or response format. Check [PC service versions and interfaces](PC_MODELS.md), update to a compatible service, and restart it normally. |
+| `MODEL_STREAM_INTERRUPTED` | The stream did not finish completely. Confirm that the service is still running, then resend the retained question. |
+| `MODEL_API_TIMEOUT` | Processing exceeded its time limit. The original is preserved. Check the service and retry with less content. |
+| `MODEL_INVALID_OUTPUT` | Structure, source evidence, or completeness checks failed. If you use a custom prompt, try restoring defaults, then use the request ID to inspect the failing stage. |
+| `MODEL_INVALID_REQUEST` | Task fields or prompt formatting are invalid. Check required variables and character limits. |
+| `MODEL_REVIEW_REQUIRED` | The email contains explicit model-control text and was not analyzed. Preserve the original and review it manually. |
 
-遇到 `MODEL_OUTPUT_LIMIT` 與 `MODEL_INVALID_OUTPUT`，未完成回答的片段不能當成完整結果。容量補救所顯示的「原文摘錄」直接取自來源，不代表模型生成成功；格式或引文錯誤不能藉此略過驗證。可用 request ID 對照 PC 後端 `requests.log` 的 `finishReason`、階段及 token 數區分。
+After `MODEL_OUTPUT_LIMIT` or `MODEL_INVALID_OUTPUT`, fragments of an unfinished answer must not be treated as a complete result. “Source excerpts” shown as a capacity fallback come directly from the source and do not mean model generation succeeded. Format or quotation errors cannot bypass validation through this fallback. Match the request ID to `finishReason`, stages, and token counts in the PC backend's `requests.log` to distinguish the cause.
 
-## 開啟與匯出診斷紀錄
+## Opening and exporting diagnostic logs
 
-設定 → 診斷紀錄與「系統紀錄」頁均可使用「開啟診斷位置」「匯出診斷紀錄」。開啟位置會顯示目前工作空間的實際資料夾；匯出則選擇要保存的 JSON 檔案。「匯出紀錄」保留原本的系統操作紀錄用途，診斷匯出另提供請求階段與技術欄位。
+Settings → Diagnostic logs and the System logs page both provide “Open diagnostics folder” and “Export diagnostic logs.” Opening the location shows the actual directory for the current workspace; export lets you choose a JSON file to save. “Export logs” retains its original purpose of exporting system activity, while diagnostic export additionally provides request stages and technical fields.
 
-桌面預設位置是：
+The desktop default location is:
 
 ```text
 %APPDATA%\UFriend\workspace\diagnostics\events.jsonl
 ```
 
-每檔上限 2 MiB，總共最多保留 5 份：目前的 `events.jsonl` 及輪替的 `events.1.jsonl` 到 `events.4.jsonl`。若使用不同工作空間，以「開啟診斷位置」顯示的路徑為準。
+Each file is limited to 2 MiB, with up to 5 retained files: the current `events.jsonl` and rotated `events.1.jsonl` through `events.4.jsonl`. For another workspace, use the path shown by “Open diagnostics folder.”
 
-設定 → 一般 → 資料清理 →「刪除全部系統紀錄」可清除 UFriend 操作紀錄及診斷檔案。確認視窗先顯示數量，可按「取消」；確認後會同步清除自動備份中的操作紀錄，並清理 `events.jsonl` 與 `events.1.jsonl` 至 `events.9.jsonl`，涵蓋較高保留數量設定可能留下的輪替檔。失敗會在視窗內顯示原因並可重試，之後的新操作仍正常寫入新紀錄。全部清理範圍見[資料清理](APP_README.md#資料清理)。
+Settings → General → Data cleanup → “Delete all system logs” clears UFriend activity and diagnostic files. The confirmation dialog shows counts and offers “Cancel.” Confirming also removes activity records from automatic backups and cleans `events.jsonl` plus `events.1.jsonl` through `events.9.jsonl`, covering files left by higher retention settings. Failures are explained in the dialog and can be retried. Later actions continue to create new logs normally. See [Data cleanup](APP_README.md#data-cleanup) for the full deletion scope.
 
-PC 後端獨立保存在 `PC-LLM-API/.runtime/requests.log`，每檔 2 MiB，另保留 `requests.previous.log` 一份。桌面送出的 `X-UFriend-Request-Id` 會在後端 response header 與成功／錯誤資料中帶回相同 ID；用它對照兩邊紀錄，再看 request、tokenize、inference、decode、output 等階段。
+The PC backend logs independently to `PC-LLM-API/.runtime/requests.log`, with a 2 MiB limit and one retained `requests.previous.log`. The desktop's `X-UFriend-Request-Id` is returned unchanged in the backend response header and success/error data. Use it to match the two logs, then inspect stages such as request, tokenize, inference, decode, and output.
 
-UFriend 的資料清理不會刪除上述 PC 後端紀錄，也不會清除獨立 OCR／Whisper 服務的紀錄；請在各服務專案內管理。
+UFriend data cleanup does not delete these PC backend logs or the independent OCR/Whisper service logs. Manage them inside their respective service projects.
 
-診斷採欄位白名單，記錄時間、版本、request ID、任務、錯誤代碼、階段、字元／token 數、耗時與提示詞雜湊；不把郵件／聊天／翻譯原文、模型回答、自訂 Prompt 全文或憑證寫入診斷。這項限制不代表 `state.json` 不保存使用內容：工作空間仍會保存郵件、對話、譯文與已保存設定，以便下次繼續操作。
+Diagnostics use a field allowlist: time, version, request ID, task, error code, stage, character/token counts, duration, and prompt hashes. They do not record source emails/chats/translations, model answers, complete custom prompts, or credentials. This restriction does not mean `state.json` avoids saving user content. The workspace still saves email, conversations, translations, and saved settings so you can continue next time.
 
-主程式與後端分開保存版本與紀錄。各服務的合成測試與品質限制請參考其 README；桌面 API 契約見[模型介面說明](../../app/models/README.md)。PC 測試不能替代 UGen300 的硬體效能或品質驗證。
+The desktop and backends maintain their own versions and logs. See each service's README for synthetic tests and quality limits. The desktop API contract is in the [model interface documentation](../../app/models/README.md). PC tests cannot replace UGen300 hardware performance or quality validation.

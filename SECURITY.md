@@ -1,5 +1,7 @@
 # Security
 
+[English](SECURITY.md) | [繁體中文](SECURITY.zh-TW.md)
+
 ## Reporting a vulnerability
 
 Do not post exploit details, credentials, personal mail, or private workspace files in a public issue.
@@ -15,4 +17,4 @@ A useful report includes the affected version, Windows version, the component or
 - Local model services are separate projects and are intended for loopback access on the same computer. UFriend does not install, update, start, or stop them.
 - AI responses and mail suggestions require human review. Content validation is limited and does not guarantee semantic correctness or complete prompt-injection resistance.
 
-Report issues against the latest available release where possible. Older releases do not have a separate published security-maintenance schedule. Keep backups before upgrading or testing a fix, and review [workspace recovery](docs/guides/APP_README.md#保存與恢復) before moving data.
+Report issues against the latest available release where possible. Older releases do not have a separate published security-maintenance schedule. Keep backups before upgrading or testing a fix, and review [workspace recovery](docs/guides/APP_README.md#saving-and-recovery) before moving data.

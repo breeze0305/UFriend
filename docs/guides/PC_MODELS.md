@@ -1,87 +1,89 @@
-# PC 模型服務指南
+# PC Model Services Guide
 
-UFriend 透過本機 API 使用三個獨立模型服務。它們各自管理程式碼、模型、執行環境與啟停，不包含在 UFriend 原始碼或桌面成品中。**目前請向維護者另行取得需要的服務專案，依各自 README 安裝；只取得 UFriend repository 不會同時取得服務。**
+[English](PC_MODELS.md) | [繁體中文](PC_MODELS.zh-TW.md)
 
-本指南對應 PC-LLM-API 0.1.10、PC-OCR-API 0.1.0 與 PC-Whisper-API 0.1.1 的介面與環境。更新服務後，依該專案 README 正常停止及重啟，讓執行中的服務載入新程式。每日郵件整理、會議排程、播放字幕與字幕影片匯出由桌面端處理。
+UFriend accesses three independent model services through local APIs. Each manages its own code, models, runtime, startup, and shutdown. They are not included in UFriend's source code or desktop packages. **Currently, obtain the service projects you need separately from the maintainer and install them according to their respective READMEs. Obtaining the UFriend repository alone does not provide these services.**
 
-| 能力 | 獨立專案 | 預設端點 | 模型與執行方式 |
+This guide covers the interfaces and environments of PC-LLM-API 0.1.10, PC-OCR-API 0.1.0, and PC-Whisper-API 0.1.1. After updating a service, stop and restart it normally according to its README so the running service loads the new code. Daily mail organization, meeting scheduling, playback subtitles, and subtitled video export are handled by the desktop application.
+
+| Capability | Independent project | Default endpoint | Model and execution |
 | --- | --- | --- | --- |
-| 郵件分析、文章潤句、對話、翻譯 | PC-LLM-API | `http://127.0.0.1:8765` | Qwen2.5-1.5B-Instruct Q4_K_M，llama.cpp CUDA |
-| OCR 文字識別 | PC-OCR-API | `http://127.0.0.1:8767` | PP-OCRv5 mobile det＋rec，CPU |
-| 會議語音轉文字 | PC-Whisper-API | `http://127.0.0.1:8768` | 原始 Whisper Small 多語版，PyTorch CUDA；可選 Base |
+| Mail analysis, text polishing, chat, and translation | PC-LLM-API | `http://127.0.0.1:8765` | Qwen2.5-1.5B-Instruct Q4_K_M, llama.cpp CUDA |
+| OCR text recognition | PC-OCR-API | `http://127.0.0.1:8767` | PP-OCRv5 mobile det + rec, CPU |
+| Meeting speech-to-text | PC-Whisper-API | `http://127.0.0.1:8768` | Original multilingual Whisper Small, PyTorch CUDA; Base is optional |
 
-端點只提供同一台電腦的 loopback HTTP。UFriend 填寫上表根網址，不加 `/health`、`/v1/llm` 或 `/v1/jobs`。LLM 引擎另用 8766 埠，桌面端仍連接 8765。
+The endpoints expose loopback HTTP on the same computer only. Enter the root URLs above in UFriend without appending `/health`, `/v1/llm`, or `/v1/jobs`. The LLM engine uses port 8766 separately; the desktop application still connects to 8765.
 
-## 環境需求
+## Environment requirements
 
-三個服務都需要 Windows x64、Node.js 24 以上，首次安裝需要網路與下載、解壓所需空間。實際固定版本及安裝指令以取得的服務 README 和 lockfile 為準。
+All three services require Windows x64 and Node.js 24 or later. Initial installation needs network access and enough space for downloads and extraction. The service README and lockfile you obtain define the actual pinned versions and installation commands.
 
-| 服務 | 額外環境 | 安裝內容 |
+| Service | Additional environment | Installation contents |
 | --- | --- | --- |
-| PC-LLM-API | 支援 CUDA 12.4 runtime 的 NVIDIA GPU 與驅動；Windows `tar.exe`。Node 端無額外 npm 依賴，不需 Python。 | setup 下載固定 llama.cpp CUDA runtime 與 GGUF 模型；下載約 1.76 GB，需另留解壓及快取空間。 |
-| PC-OCR-API | 可建立 venv 的 64-bit Python 3.10～3.13；使用 CPU，無需 NVIDIA GPU。可用 `UFRIEND_OCR_PYTHON` 指定相容 Python。 | setup 建立專案自己的 venv，安裝固定 Paddle 套件並下載、驗證 OCR 模型；Python 3.14 不適用這組依賴。 |
-| PC-Whisper-API | 支援所用 PyTorch CUDA runtime 的 NVIDIA GPU 與驅動，約 10 GB 可用空間；目前固定 PyTorch 2.9.1 cu128。 | setup 下載 Python 3.12.10、PyTorch、OpenAI Whisper、Base／Small 權重與 FFmpeg，不需使用系統 Python；CUDA 不可用時回報未就緒。 |
+| PC-LLM-API | An NVIDIA GPU and driver supporting the CUDA 12.4 runtime; Windows `tar.exe`. The Node side has no additional npm dependencies and does not need Python. | Setup downloads the pinned llama.cpp CUDA runtime and GGUF model. The download is about 1.76 GB; allow additional space for extraction and caching. |
+| PC-OCR-API | 64-bit Python 3.10–3.13 with venv support; runs on the CPU without an NVIDIA GPU. Use `UFRIEND_OCR_PYTHON` to specify a compatible Python installation. | Setup creates the project's own venv, installs pinned Paddle packages, and downloads and verifies the OCR models. Python 3.14 is not compatible with this dependency set. |
+| PC-Whisper-API | An NVIDIA GPU and driver supporting the selected PyTorch CUDA runtime, and about 10 GB of free space. The current pinned version is PyTorch 2.9.1 cu128. | Setup downloads Python 3.12.10, PyTorch, OpenAI Whisper, Base and Small weights, and FFmpeg. It does not need system Python and reports not ready if CUDA is unavailable. |
 
-只需啟動要使用的能力。OCR 可以獨立使用 CPU；LLM 與 Whisper 的上述服務需要 NVIDIA CUDA。UFriend 桌面使用的字幕匯出 FFmpeg 與 Whisper 服務的音訊前處理 FFmpeg 各自管理。
+Start only the services you need. OCR can run independently on the CPU; the LLM and Whisper services described above require NVIDIA CUDA. The FFmpeg used for subtitle export in the UFriend desktop application and the FFmpeg used for audio preprocessing in the Whisper service are managed separately.
 
-這些服務是 PC 推論實作。Paddle、PyTorch 與 GGUF 權重不能直接當成 UGen300 的 HEF；目前尚未接入 UGen300 實體設備，PC 效能也不能代表裝置效能。
+These services implement inference on a PC. Paddle, PyTorch, and GGUF weights cannot be used directly as UGen300 HEF files. Physical UGen300 devices are not yet integrated, and PC performance does not represent device performance.
 
-## 安裝、啟動與連線
+## Install, start, and connect
 
-1. 另行取得所需的服務專案，在各自目錄依 README 完成首次安裝；目前三個服務均提供 `npm run setup`。這是安裝步驟，不需要在每次啟動前重跑。
-2. 在該服務目錄使用 `Start API.cmd` 或其 README 指定的啟動命令。等待模型載入完成；啟動器返回不代表已就緒。
-3. 開啟 UFriend → 設定 → 模型與運算 → 本地，連線方式選 PC API。新安裝預設使用此連線方式；舊設定會保留原本選擇。
-4. 核對上表端點，保存後逐一按「測試連線」。要使用的服務需回報 API v1 與模型已就緒，再於各次工作選「本地」。來源不由設定頁全域切換，詳見[模型來源指南](MODEL_SOURCES.md)。
-5. 使用後依各服務 README 停止，可用其 `Stop API.cmd`。結束 UFriend 不會停止獨立服務。
+1. Obtain each required service project separately and complete initial setup in its own directory according to its README. All three currently provide `npm run setup`. This is an installation step; you do not need to repeat it before every launch.
+2. In the service directory, use `Start API.cmd` or the startup command specified in its README. Wait for model loading to finish; the launcher returning does not mean the service is ready.
+3. Open **UFriend → Settings → Models and compute → Local models**, and select **PC local services** under **Local backend**. New installations use this method by default; existing settings retain their previous selection.
+4. Check the endpoints above, save them, and use **Test connection** for each. A service you intend to use must report API v1 and model readiness. Select **Local** for each task. The Settings page does not switch the source globally; see the [model source guide](MODEL_SOURCES.md).
+5. Stop each service according to its README when finished; its `Stop API.cmd` can be used. Quitting UFriend does not stop independent services.
 
-請在各服務自己的目錄執行命令，不要在 UFriend 根目錄執行服務的 setup 或停止命令。已有服務時，先用其 `npm run health` 或 UFriend「測試連線」確認狀態；修復或重新安裝前先正常停止該服務。
+Run service commands in each service's own directory. Do not run their setup or stop commands in the UFriend root. If a service is already installed, first check its status with `npm run health` or UFriend's **Test connection**. Stop that service normally before repairing or reinstalling it.
 
-服務未啟動、載入中或端點錯誤時，對應功能會保留來源並顯示錯誤；就緒後可重試，不會自動改送雲端。每個服務一次處理一個工作。OCR 取消會停止並重新載入 worker；Whisper 取消需等當次解碼返回才釋放工作槽，桌面轉錄佇列遇到忙碌會等待 5 秒再重試。
+If a service is stopped, still loading, or configured with an incorrect endpoint, the affected feature keeps the selected source and displays an error. Retry once it is ready; the application does not automatically send the task to the cloud. Each service handles one job at a time. Cancelling OCR stops and reloads its worker. Cancelling Whisper releases the job slot only after the current decoding call returns; when the service is busy, the desktop transcription queue waits 5 seconds before retrying.
 
-介面語言、LLM 常用語言及個人背景各自保存；操作見[桌面使用說明](APP_README.md#設定分類)與 [LLM 指南](LLM_FEATURES.md)。桌面資料清理不會刪除三個服務的紀錄，請在各服務專案內管理。
+Interface language, the LLM's preferred language, and personal background are saved separately. See the [desktop user guide](APP_README.md#settings-categories) and [LLM guide](LLM_FEATURES.md) for instructions. Cleaning desktop data does not delete records belonging to the three services; manage those within each service project.
 
 ## OCR
 
-在「OCR 文字識別」匯入圖片，按「開始識別」。可核對左側來源、編輯右側文字並複製。辨識期間可切頁或取消；新圖片不會套用舊結果。圖片上限 40 MiB、6,000 萬像素，服務另限制單邊 20,000 像素。
+Import an image in **OCR text recognition** and choose **Recognize text**. Compare the source on the left with the text on the right, edit the text, and copy it. You can switch pages or cancel during recognition; old results are not applied to a new image. Images are limited to 40 MiB and 60 million pixels, with a further service limit of 20,000 pixels on either side.
 
-背景截圖流程：勾選「自動接收剪貼簿圖片」，保持 UFriend 在背景執行，使用 Windows `Win + Shift + S` 擷取公告，再開 OCR 頁核對文字。也可手動按「讀取剪貼簿」。自動接收預設關閉，只接收啟用後的新圖片。
+For background screenshot capture, enable **Automatically receive clipboard images**, keep UFriend running in the background, capture a notice with Windows `Win + Shift + S`, then open the OCR page to review the text. You can also choose **Read clipboard** manually. Automatic reception is off by default and accepts only new images copied after it is enabled.
 
-繁中、英文、金額、網址與小字都應人工核對；模型輸出的信心值不能代替正確性檢查。
+Manually check Traditional Chinese, English, amounts, URLs, and small text. Model confidence scores do not replace accuracy checks.
 
 ## Whisper
 
-在「會議紀錄」拖入或選擇音訊／影片，先選語言與匯入後的動作，再確認匯入。可依序排隊轉錄，或指定未來的本機時間；已匯入檔案由卡片的播放／日曆按鈕操作。台灣中文可選繁體中文；服務將中文辨識文字轉為繁體字，不替換成臺灣詞彙。此 PC 服務每檔上限 1000 MiB；桌面可保留更大的來源，但服務會拒絕超限檔案。
+In **Meeting notes**, drag in or select audio or video files, choose the language and the action to take after import, then confirm the import. Queue files for sequential transcription or schedule a future local time. Use the play and calendar buttons on each card for files already imported. For Mandarin used in Taiwan, select Traditional Chinese; the service converts recognized Chinese text to Traditional characters without replacing vocabulary with Taiwan-specific terms. This PC service accepts up to 1000 MiB per file. The desktop application can retain larger source files, but the service rejects files over its limit.
 
-卡片顯示佇列位置、指定時間或實際轉錄進度，切頁後繼續執行。暫停會取消本次推論，再加入佇列從頭開始；取消尚未開始的排程保留檔案。UFriend 需開啟或留在系統匣，關閉期間到期的工作會在下次開啟後排隊；不會喚醒電腦。操作與保存規則見[會議紀錄與排程](APP_README.md#會議紀錄與排程)。
+Cards display the queue position, scheduled time, or actual transcription progress, and processing continues when you switch pages. Pausing cancels the current inference; requeuing starts again from the beginning. Cancelling a schedule that has not started keeps the file. UFriend must remain open or in the system tray. Jobs that become due while it is closed are queued after the next launch; they do not wake the computer. See [Meeting notes and scheduling](APP_README.md#meeting-notes-and-scheduling) for operation and persistence rules.
 
-點卡片查看逐字稿、點時間跳轉後播放、匯出 TXT 或 SRT，也能編輯文字。影片採左側播放／右側逐字稿，窄視窗改上下排列；帶時間的逐字稿提供可切換的 CC 浮動字幕。無語音會獨立標示；錯誤顯示已處理範圍，不把部分結果當成全檔成功。
+Open a card to view or edit its transcript, click a timestamp to seek and play, or export TXT or SRT. Videos use a player on the left and transcript on the right, switching to a vertical layout in narrow windows. Timed transcripts provide a toggleable CC subtitle overlay. No-speech results are marked separately. Errors show the processed range without treating partial results as a successful full-file transcription.
 
-已有帶時間的逐字稿時，可按「匯出含字幕影片」另存 MP4，把字幕燒錄到畫面上。匯出使用已依 [runtime 指南](../development/FFMPEG_RUNTIME.md)安裝的 FFmpeg 與本機 CPU，不呼叫模型，也不需要三個 PC API 保持啟動；原檔保留。進度、取消及保存方式見[字幕影片匯出](APP_README.md#匯出含字幕影片)。
+When a timed transcript is available, choose **Export video with subtitles** to save a separate MP4 with subtitles burned into the picture. Export uses FFmpeg and the local CPU. The current Windows release includes FFmpeg; for older or custom builds that do not include it, install the runtime using the [runtime guide](../development/FFMPEG_RUNTIME.md). It does not call a model or require any of the three PC APIs to remain running, and the original file is preserved. See [Subtitled video export](APP_README.md#exporting-video-with-burned-in-subtitles) for progress, cancellation, and saving behavior.
 
-目前提供語音轉錄，不包含說話者分離、會議摘要、決議或待辦抽取。段落時間由 Whisper 產生，仍需抽查對齊；中英切換、專有名詞及重疊發言是品質限制。
+The current feature provides speech transcription, without speaker diarization, meeting summaries, decisions, or action-item extraction. Whisper generates segment timestamps; spot-check their alignment. Switching between Chinese and English, specialized terms, and overlapping speech remain quality limitations.
 
-## LLM 對話
+## LLM chat
 
-左側「LLM 對話」輸入問題。Enter 傳送、Shift＋Enter 換行；中文輸入法選字中的 Enter 不傳送。回覆逐段顯示，生成中的內容標為「尚未完成」。可追問、停止與複製成功回覆，按「聊天紀錄」開啟清單並新增、切換、重新命名或刪除對話。各段成功問答與草稿分開保存；新增或切換對話會停止目前生成，刪除目前對話也會停止。未完成答案不加入歷史，問題會保留供重試。
+Enter a question in **LLM chat** in the sidebar. Enter sends the message, while Shift + Enter inserts a line break. Enter does not send while a Chinese input method is selecting a character. Responses appear incrementally, and text still being generated is marked **Generating · Incomplete**. You can ask follow-up questions, stop generation, and copy successful responses. Choose **Chat history** to open the list and create, switch, rename, or delete conversations. Successful exchanges and drafts are saved separately. Creating or switching conversations stops the current generation, as does deleting the active conversation. Incomplete answers are excluded from history, while the question remains available for retry.
 
-傳送目前這段對話成功完成的問答、新問題與啟用的個人背景，不附加其他對話、信箱內容或錄音。PC context 為 8,192 tokens，聊天與翻譯各預留 4,096 output tokens；內容超限時保留原文，可縮短或新增對話。聊天每則訊息／翻譯原文最多 16,000 字元，但實際 token 容量通常更早達到。聊天沒有工具操作、檔案上傳或自動操作信箱。
+Requests include successfully completed exchanges from the current conversation, the new question, and enabled personal background. They do not attach other conversations, mailbox contents, or recordings. The PC context window is 8,192 tokens, and chat and translation each reserve 4,096 output tokens. If content exceeds the limit, the original text is preserved so you can shorten it or start a new conversation. Each chat message or translation source text is limited to 16,000 characters, but the practical token limit is usually reached earlier. Chat does not provide tool operations, file uploads, or automatic mailbox actions.
 
-## 翻譯、Prompt 與診斷
+## Translation, prompts, and diagnostics
 
-在「文字翻譯」選來源與目標語言，輸入原文後按「開始翻譯」。來源可自動偵測；目標可選繁中、簡中、英、日、韓、西、法、德。完成後可複製譯文；取消或修改原文／語言不會套用晚到結果。
+In **Text translation**, select the source and target languages, enter the original text, and choose **Translate**. Source-language detection can be automatic. Available target languages are Traditional Chinese, Simplified Chinese, English, Japanese, Korean, Spanish, French, and German. Copy the translation when complete. Cancelling or changing the source text or languages prevents late results from being applied.
 
-設定 → Prompt 設定 →「開啟 Prompt 除錯」，可分別調整郵件分析、文章潤句、LLM 對話、文字翻譯的 System 指示與 User 模板。預設內容由目前服務的 `GET /v1/prompts` 取得，保存後才用於新請求；「恢復預設」移除該任務的本機覆寫。郵件／潤句仍有原文、數字及輸出格式檢查。
+Open **Settings → Prompt settings → Open prompt debugger** to adjust the System instructions and User templates separately for mail analysis, text polishing, LLM chat, and text translation. Defaults come from `GET /v1/prompts` on the current service; changes apply to new requests only after saving. **Reset {task} defaults** (for example, **Reset LLM chat defaults**) removes the local override for the selected task. Mail analysis and polishing still check source text, numbers, and output format.
 
-遇到錯誤，先核對 code 與 request ID，再從設定 → 診斷紀錄或系統紀錄頁開啟／匯出診斷。桌面預設在 `%APPDATA%\UFriend\workspace\diagnostics\events.jsonl`；PC 後端在 `PC-LLM-API/.runtime/requests.log`。兩邊以 request ID 對照階段及停止原因。詳細操作、模板變數與錯誤處理見[LLM 功能與除錯指南](LLM_FEATURES.md)。
+When an error occurs, first check the code and request ID, then open or export diagnostics from **Settings → Diagnostic logs** or the system log page. The desktop log defaults to `%APPDATA%\UFriend\workspace\diagnostics\events.jsonl`; the PC backend log is `PC-LLM-API/.runtime/requests.log`. Match request IDs across the two to compare processing stages and stop reasons. See the [LLM features and debugging guide](LLM_FEATURES.md) for detailed instructions, template variables, and error handling.
 
-## 開發驗證
+## Development validation
 
-桌面環境準備與基本檢查見[安裝與編譯指南](INSTALL_BUILD.md)。`npm run smoke` 使用隔離合成資料與模型替身，不需要真模型；下列測試則會呼叫已啟動的服務，不負責下載或啟停服務。
+See the [installation and build guide](INSTALL_BUILD.md) for desktop environment preparation and basic checks. `npm run smoke` uses isolated synthetic data and model substitutes and does not need real models. The following tests call running services and do not download, start, or stop them.
 
-| 命令 | 前提與測試範圍 |
+| Command | Prerequisites and coverage |
 | --- | --- |
-| `npm run smoke:llm` | LLM 服務已就緒且閒置；測試對話串流、歷史、翻譯、Prompt、潤句、語言、背景與診斷，不操作真實帳號或剪貼簿。報告在 `.test-results/llm-features/report.json`。 |
-| `npm run smoke:models` | 三個服務均已就緒且閒置，並自行準備 `local/test-data/audio/test_audio.mp3`；測試合成圖片 OCR、影音轉錄與取消、兩輪對話。音檔不隨 repository 提供，需包含足夠語音及處理時間供取消／重試檢查。報告在 `.test-results/models/model-smoke-report.json`，原始輸出在 `local/test-results/integration/`。 |
-| `npm run smoke:clipboard` | OCR 服務已就緒且閒置；以合成圖片短暫操作真正 Windows 剪貼簿，測試手動擷取、自動辨識與停用，之後有條件恢復原內容；途中有外部新複製時保留新內容。報告在 `.test-results/clipboard/`。 |
+| `npm run smoke:llm` | The LLM service must be ready and idle. Tests chat streaming, history, translation, prompts, polishing, language, background, and diagnostics without operating real accounts or the clipboard. The report is written to `.test-results/llm-features/report.json`. |
+| `npm run smoke:models` | All three services must be ready and idle, and you must supply `local/test-data/audio/test_audio.mp3`. Tests OCR on synthetic images, media transcription and cancellation, and two-turn chat. The audio file is not included in the repository and needs enough speech and processing time for cancellation and retry checks. The report is written to `.test-results/models/model-smoke-report.json`, with raw output in `local/test-results/integration/`. |
+| `npm run smoke:clipboard` | The OCR service must be ready and idle. Temporarily uses the real Windows clipboard with synthetic images to test manual capture, automatic recognition, and disabling, then conditionally restores the original contents. If another application copies new content during the test, that new content is preserved. Reports are written to `.test-results/clipboard/`. |
 
-這些測試使用獨立工作空間。自行提供的音檔、測試逐字稿與執行報告保留在 Git 排除的目錄；流程通過不能代替內容品質驗收，仍需核對 OCR 文字、語音逐字稿及模型回答。API 欄位、容量與取消契約見[模型介面說明](../../app/models/README.md)。
+These tests use separate workspaces. User-supplied audio, test transcripts, and run reports remain in Git-ignored directories. Passing a workflow test does not replace content-quality review; still check OCR text, speech transcripts, and model responses. For API fields, capacity, and cancellation contracts, see the [model interface guide](../../app/models/README.md).

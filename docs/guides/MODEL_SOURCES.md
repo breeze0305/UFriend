@@ -1,68 +1,70 @@
-# 每次任務選擇本地或雲端
+# Choose local or cloud processing for each task
 
-UFriend 的模型來源分成「本地」與「雲端」。設定頁保存連線方式、端點、模型、參數及三類預設來源。每次工作仍可自行選擇。切換設定頁的本地／雲端分頁只是在查看配置，不會改變其他工作的來源。
+[English](MODEL_SOURCES.md) | [繁體中文](MODEL_SOURCES.zh-TW.md)
 
-## 設定預設來源
+UFriend separates model sources into Local and Cloud. Settings stores the connection method, endpoints, models, parameters, and defaults for three types of work. You can still choose a source for each task. Switching the Local models/Cloud models tab in Settings only changes the configuration view; it does not change other tasks' sources.
 
-「設定 → 模型與運算」的本地與雲端分頁各有文字 LLM、OCR、語音轉錄三個「設為預設」開關，三類可分開設定，每類必有一個預設，首次使用皆為本地。開關立即保存，不會一起保存旁邊尚未提交的端點或 API Key 表單。
+## Setting default sources
 
-開啟首頁、郵件、對話、翻譯、潤句、OCR 或新的會議匯入視窗時，來源預選值回到該類預設。例如文字預設本地，在翻譯頁暫時改雲端，離開再回來便顯示本地。切換頁面與調整預設不會重送或改派進行中的工作；畫面另外標示目前執行來源，完成結果保留原來源。已匯入會議的排程與重試沿用該筆會議保存的來源。
+In Settings → Models and compute, both the Local models and Cloud models tabs have three “Use by default” switches: text LLM, OCR, and speech transcription. These defaults are independent, and each type always has one default. All three default to Local on first use. A switch saves immediately without saving any unsubmitted endpoint or API key form values beside it.
 
-每日自動郵件整理開始時採文字 LLM 預設來源。自動接收剪貼簿／匯入圖片的 OCR 仍固定使用本地；OCR 預設來源適用於功能頁的手動辨識。
+Opening the home page, email, chat, translation, writing polish, OCR, or a new meeting import dialog resets the preselected source to that type's default. For example, with text set to Local by default, temporarily choosing Cloud on the translation page does not persist after leaving and returning; Local is selected again. Changing pages or defaults does not resend or reassign running jobs. The UI separately indicates the active source, and completed results retain their original source. Schedules and retries for an imported meeting use the source saved with that meeting.
 
-## 設定連線
+Daily automatic email organization uses the default text LLM source when it starts. Automatic OCR for clipboard capture or image import continues to use Local. The OCR default applies to manual recognition on the feature page.
 
-開啟「設定 → 模型與運算」。
+## Configuring connections
 
-### 本地
+Open Settings → Models and compute. For a PC API connection, follow Local models → Local backend → PC local services.
 
-- **PC API：**保存 LLM、OCR 與 Whisper 三個端點，預設分別為 `http://127.0.0.1:8765`、`http://127.0.0.1:8767`、`http://127.0.0.1:8768`。只接受本機 loopback HTTP。各服務需另行安裝與啟動，見 [PC 模型指南](PC_MODELS.md)。
-- **UGen300：**歸入本地連線方式，尚未接入實體硬體。裝置池中的計時調度只供開發驗證；選擇它不會使用 PC API 或雲端代為推論。
+### Local models
 
-新安裝預設使用 PC API 作為本地連線方式。
+- **PC local services (PC API):** Save the three endpoints for LLM, OCR, and Whisper. Their defaults are `http://127.0.0.1:8765`, `http://127.0.0.1:8767`, and `http://127.0.0.1:8768`, respectively. Only local loopback HTTP is accepted. Install and start each service separately; see the [PC models guide](PC_MODELS.md).
+- **UGen300:** This is a local connection method, but physical hardware is not integrated yet. Timed scheduling in the device pool is for development verification only. Choosing it does not substitute PC API or cloud inference.
 
-### 雲端
+A new installation selects “PC local services” as its default “Local backend.”
 
-支援 OpenAI 相容 API。請填寫供應商提供的 API 基底位址、金鑰，以及三類功能的模型名稱；未設定預選模型。
+### Cloud models
 
-| 欄位 | 用途 |
+OpenAI-compatible APIs are supported. Enter the API base URL, key, and model names for the three features as provided by your provider. No models are preselected.
+
+| Field | Purpose |
 | --- | --- |
-| API 端點 | API 基底位址，包含供應商要求的路徑，例如 `/v1`，不附加 `/chat/completions` 或 `/audio/transcriptions`。 |
-| 文字模型 | 郵件分析、對話、翻譯與潤句。 |
-| OCR 模型 | 支援圖片輸入的 Chat Completions 模型。 |
-| 語音模型 | 支援 Audio Transcriptions、`verbose_json` 與段落時間戳的模型。 |
-| Temperature | 選填。留空使用服務預設；填寫時為 0～2，所選模型須支援此參數。 |
-| API Key | 透過 Electron `safeStorage` 保存。留空保留既有金鑰，可另外移除。 |
+| API endpoint | The API base URL, including any provider-required path such as `/v1`. Do not append `/chat/completions` or `/audio/transcriptions`. |
+| Text and chat model | Email analysis, chat, translation, and writing polish. |
+| Image text model | A Chat Completions model that supports image input. |
+| Speech transcription model | A model supporting Audio Transcriptions, `verbose_json`, and segment timestamps. |
+| Text generation temperature | Optional. Leave blank to use the service default. If supplied, the value must be 0–2 and the selected model must support the parameter. |
+| API Key | Stored using Electron `safeStorage`. Leave blank to retain the existing key, or remove it separately. |
 
-API 端點接受 HTTPS；本機相容測試服務可使用 loopback HTTP。端點不可夾帶帳密、查詢參數或片段。測試連線會讀取供應商的模型清單，確認指定模型可見，不執行付費生成；能列出模型不代表所有任務格式都相容。
+API endpoints accept HTTPS. A local compatible test service may use loopback HTTP. An endpoint must not contain embedded credentials, query parameters, or a fragment. Testing the connection reads the provider's model list to confirm that the specified models are visible, without running paid generation. Listing a model does not prove compatibility with every task format.
 
-不同供應商或模型可能只支援部分功能。文字與 OCR 使用 `/chat/completions`；對話以 SSE 串流接收，OCR 以圖片輸入辨識文字。語音使用 `/audio/transcriptions`；僅回傳純文字、不提供段落時間戳的模型目前不能用來建立會議逐字稿。請依供應商文件選擇相容模型。
+Providers and models may support only some features. Text and OCR use `/chat/completions`; chat receives SSE streams, while OCR recognizes text from image input. Speech uses `/audio/transcriptions`. Models that return only plain text without segment timestamps cannot currently create meeting transcripts. Use the provider's documentation to choose compatible models.
 
-協議參考：[Chat Completions](https://developers.openai.com/api/reference/resources/chat/subresources/completions/methods/create)、[Audio Transcriptions](https://developers.openai.com/api/reference/resources/audio/subresources/transcriptions/methods/create)。雲端 OCR 圖片上限為 20 MiB；會議音訊最長 12 小時，會先分段壓縮，確保每段低於 API 的 25 MB 上傳限制，詳見 [Speech to text](https://developers.openai.com/api/docs/guides/speech-to-text)。
+Protocol references: [Chat Completions](https://developers.openai.com/api/reference/resources/chat/subresources/completions/methods/create) and [Audio Transcriptions](https://developers.openai.com/api/reference/resources/audio/subresources/transcriptions/methods/create). Cloud OCR images are limited to 20 MiB. Meeting audio can be up to 12 hours long and is split and compressed first so that each chunk is below the API's 25 MB upload limit. See [Speech to text](https://developers.openai.com/api/docs/guides/speech-to-text).
 
-## 在工作中選擇來源
+## Choosing a source in a task
 
-| 功能 | 選擇與保存方式 |
+| Feature | Selection and persistence |
 | --- | --- |
-| 會議紀錄 | 匯入音訊或影片時選擇來源，與每一筆會議一起保存；只匯入不會立刻上傳。加入佇列或設定開始時間後，沿用該會議的來源。 |
-| 郵件整理 | 開啟時預選文字 LLM 預設；當次批次的摘要與分類使用同一來源。 |
-| OCR | 手動開始辨識前選擇來源。啟用自動辨識後，剪貼簿接收與圖片匯入固定使用本地，並保留手動來源選擇；完成結果顯示實際執行來源。 |
-| 對話 | 在輸入區選擇本次來源；新一輪可以改選，已完成訊息保留當時的來源。 |
-| 翻譯、潤句 | 在各功能的執行區選擇來源，彼此獨立。 |
+| Meeting notes | Choose a source when importing audio or video; it is saved with each meeting. Importing alone does not upload the media immediately. Queuing or scheduling it uses that meeting's saved source. |
+| Email organization | Opening the page preselects the default text LLM source. Summarization and categorization within the batch use the same source. |
+| OCR | Choose the source before starting manual recognition. With automatic recognition enabled, clipboard capture and image import always use Local while preserving the manual source selection. Completed results show the source actually used. |
+| Chat | Choose the source for this turn in the input area. You can change it for a new turn; completed messages retain the source used at the time. |
+| Translation and writing polish | Choose the source independently in each feature's execution area. |
 
-功能頁的臨時選擇只供當次開啟使用；工作開始後會保存實際執行來源。會議在排程、重試與重新開啟程式後仍保留自己的來源。若要更改正在轉錄或已排程的會議，先暫停，再改來源並重新開始。
+Temporary feature-page choices last only for that visit. Once a job starts, its actual source is saved. Meetings retain their source through scheduling, retries, and app restarts. To change a meeting that is being transcribed or is scheduled, pause it first, change its source, then start again.
 
-修改端點或模型參數，只會取消受影響來源與模型種類的執行中工作。已完成結果保留實際執行來源；切換下一次工作，不會改寫先前結果的來源。來源不可用或請求失敗時會保留原始內容並顯示原因，不會自動切換來源。
+Changing an endpoint or model parameters cancels only active jobs for the affected source and model type. Completed results retain the source actually used. Changing the next job does not rewrite previous results' sources. If a source is unavailable or a request fails, the app preserves the original content and shows the reason without switching sources automatically.
 
-## 資料會傳送到哪裡
+## Where your data is sent
 
-選擇本地時，模型輸入只送往設定的本機服務。選擇雲端時，所需內容會送往你填寫的服務端點：
+With Local selected, model input goes only to the configured local service. With Cloud selected, the required content goes to the service endpoint you entered:
 
-- 會議：先在本機抽取聲音，再以分段音訊上傳；影片畫面不隨轉錄上傳。處理結束或取消後清理這次產生的暫存音訊。
-- 對話：包含本次問題及目前對話的歷史訊息。因此改選雲端時，該段對話中先前由本地處理的內容也會成為上下文；需要分開內容時請新增對話。
-- 郵件：摘要階段送出該封郵件文字、寄件與收件欄位及參考時間，不包含 Gmail 授權 Token 或附件。分類階段只接收已生成摘要，不附加原信、個人背景或自訂 Prompt。
-- OCR、翻譯、潤句：分別送出選定圖片或輸入文字。啟用個人背景時，相關 LLM 任務亦會包含對應背景欄位。
+- Meetings: audio is extracted locally and uploaded in chunks. Video frames are not uploaded for transcription. Temporary audio generated for the job is cleaned up after processing or cancellation.
+- Chat: includes the current question and history of the active conversation. Switching to Cloud therefore also sends earlier locally processed content in that conversation as context. Start a new conversation when you need to keep content separate.
+- Email: summarization sends that email's text, sender and recipient fields, and reference time, without Gmail authorization tokens or attachments. Categorization receives only the resulting summary, without the original email, personal background, or a custom prompt.
+- OCR, translation, and writing polish: send the selected image or entered text, respectively. When personal background is enabled, relevant LLM tasks also include the corresponding background fields.
 
-字幕影片匯出由已安裝的 FFmpeg 在本機執行，不受轉錄來源影響。公開可攜式版本可由「設定 → 一般 → 影音元件」下載安裝或選取已解壓的官方套件，安裝結果保存在使用者資料目錄，重啟與更新後仍可使用。雲端語音的音訊前處理也需要此 runtime；詳見 [FFmpeg runtime 說明](../development/FFMPEG_RUNTIME.md)。雲端服務的費用、配額及資料保存政策由供應商決定。
+Video subtitle export runs locally using FFmpeg and is independent of the transcription source. The current Windows EXE includes FFmpeg. Only older or self-built versions without the media runtime need the optional installation: open Settings → General → Media runtime to download and install it, or select an extracted official package. An optional installation is stored in the user data directory and remains available after restarts and updates. Cloud speech audio preprocessing also needs this desktop media runtime. The local PC-Whisper-API service manages its own audio preprocessing FFmpeg separately; the desktop's bundled or optional runtime does not replace it. See the [FFmpeg runtime guide](../development/FFMPEG_RUNTIME.md). Cloud service fees, quotas, and data retention policies are determined by the provider.
 
-[返回使用手冊](APP_README.md) · [模型介面契約](../../app/models/README.md)
+[Back to the user guide](APP_README.md) · [Model interface contract](../../app/models/README.md)

@@ -1,5 +1,7 @@
 # UFriend Windows clipboard notification helper
 
+[English](README.md) | [繁體中文](README.zh-TW.md)
+
 `ClipboardListener.exe` is a C# 5 / .NET Framework 4.x console helper. It runs a WinForms STA message loop with a message-only window and registers `AddClipboardFormatListener`. Electron should launch it only while automatic image recognition is enabled.
 
 ## Build

@@ -1,5 +1,7 @@
 # Third-party software
 
+[English](THIRD_PARTY_NOTICES.md) | [繁體中文](THIRD_PARTY_NOTICES.zh-TW.md)
+
 The [MIT license](LICENSE) covers UFriend's own code. Third-party components retain their own copyrights and licenses.
 
 - **Electron and Chromium**: folder packages retain Electron's `LICENSE` and `LICENSES.chromium.html` beside the application executable. The single-file EXE contains that application payload and expands it, including the notices, into its temporary run directory.

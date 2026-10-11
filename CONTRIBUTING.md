@@ -1,5 +1,7 @@
 # Contributing to UFriend
 
+[English](CONTRIBUTING.md) | [繁體中文](CONTRIBUTING.zh-TW.md)
+
 Use [GitHub Issues](https://github.com/breeze0305/UFriend/issues) for reproducible bugs and feature requests. For vulnerabilities, follow [SECURITY.md](SECURITY.md).
 
 ## Report a problem
@@ -9,6 +11,8 @@ Include the UFriend version, Windows version, local or cloud processing source, 
 ## Propose a change
 
 Discuss larger changes in an issue before implementing them. Keep changes focused, explain the resulting behavior, and update the relevant documentation. Contributions to the project's own code are provided under the [MIT License](LICENSE); retain the licenses and attribution of any third-party material you add.
+
+Maintain separate English (`NAME.md`) and Traditional Chinese (`NAME.zh-TW.md`) versions of every project explanation. Update both versions together, keep their commands, facts, and limitations consistent, add language links, and list new documentation in both `docs/README.md` and `docs/README.zh-TW.md`. Preserve upstream license texts and hash-pinned runtime metadata byte for byte; provide a separate translation and link it from the documentation indexes instead of editing a pinned original.
 
 1. Follow the [Windows setup guide](docs/guides/INSTALL_BUILD.md). Use `npm ci` to preserve the locked dependency versions.
 2. Use an isolated workspace through `UFRIEND_DATA_DIR`; do not develop against your only copy of personal workspace data.
