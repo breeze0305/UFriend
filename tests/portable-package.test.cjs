@@ -11,8 +11,7 @@ const { getPinnedRuntime } = require('../scripts/ffmpeg-runtime.cjs');
 const projectRoot = path.resolve(__dirname, '..');
 const windows = { skip: process.platform !== 'win32' || process.arch !== 'x64' };
 const version = require('../package.json').version;
-const artifactName = `UFriend-${version}-Portable.exe`;
-const bundledArtifactName = `UFriend-${version}-Portable-WithFFmpeg.exe`;
+const artifactName = `UFriend-${version}.exe`;
 
 function fixture(t) {
   const parent = path.join(projectRoot, '.test-data', 'portable-package');
@@ -144,7 +143,7 @@ test('successful wrapping preserves the verified input and prior release, then e
   assert.equal(fs.readFileSync(path.join(f.oldRelease, 'keep.exe'), 'utf8'), 'Existing release must survive.');
 });
 
-test('bundled wrapping verifies the fixed runtime, preserves input and records its provenance under a distinct artifact name', windows, t => {
+test('bundled wrapping verifies the fixed runtime, preserves input and records its provenance', windows, t => {
   const f = bundledFixture(t), before = inspectTree(f.input);
   const { pinnedRuntime } = f;
   let inspected = 0, built = false;
@@ -153,13 +152,13 @@ test('bundled wrapping verifies the fixed runtime, preserves input and records i
     buildFolder: () => assert.fail('Existing bundled input must not be rebuilt.'),
     runBuilder: (_command, args) => {
       assert.equal(inspected, 1);
-      assert(args.includes('--config.artifactName=' + bundledArtifactName));
+      assert(args.includes('--config.artifactName=' + artifactName));
       assert.equal(args[args.indexOf('--publish') + 1], 'never');
-      syntheticPortable(outputFromArgs(args), bundledArtifactName); built = true; return { status: 0 };
+      syntheticPortable(outputFromArgs(args)); built = true; return { status: 0 };
     },
     prune: () => { assert.equal(built, true); return noCleanupReport(f.input); },
   });
-  assert.equal(path.basename(result.executable), bundledArtifactName);
+  assert.equal(path.basename(result.executable), artifactName);
   assert.equal(result.receipt.bundledFfmpeg, true);
   assert.equal(result.receipt.videoRuntime.version, pinnedRuntime.version);
   assert.equal(result.receipt.videoRuntime.sha256, pinnedRuntime.sha256['ffmpeg.exe']);

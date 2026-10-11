@@ -4,15 +4,15 @@
 
 ## 使用已打包的程式
 
-從 [GitHub Releases](https://github.com/breeze0305/UFriend/releases) 下載 Windows x64 的 **UFriend-0.1.41-Portable-WithFFmpeg.exe**。這是單一 EXE 的免安裝版本；原始碼附件與獨立 FFmpeg 開發套件不必下載，不能代替這個桌面程式。
+從 [GitHub Releases](https://github.com/breeze0305/UFriend/releases) 下載 **UFriend 的 Windows EXE 附件**（Windows x64）。原始碼附件與獨立 FFmpeg 開發套件不必下載，不能代替這個桌面程式。
 
 1. 將 EXE 保存到之後要繼續使用的位置。
 2. 若舊版仍在執行，先從 Windows 系統匣選擇「結束 UFriend」。關閉視窗可能只會隱藏到系統匣。
-3. 雙擊 `UFriend-0.1.41-Portable-WithFFmpeg.exe`。不需安裝精靈、手動解壓、Node.js 或 npm。
+3. 雙擊下載的 UFriend EXE。不需安裝精靈、手動解壓、Node.js 或 npm。
 
-啟動器每次在獨立的 Windows 暫存目錄解壓程式，再開啟 UFriend。第一次出現視窗前可能需要等候解壓。工作資料與憑證不放在這個暫存目錄；系統匣的「重新啟動 UFriend」會再開啟原始 portable EXE。執行中請保留原始檔案，更新時先完全結束舊版，再使用新的 EXE。
+啟動器每次在獨立的 Windows 暫存目錄解壓程式，再開啟 UFriend。第一次出現視窗前可能需要等候解壓。工作資料與憑證不放在這個暫存目錄；系統匣的「重新啟動 UFriend」會再開啟原始 EXE。執行中請保留原始檔案，更新時先完全結束舊版，再使用新的 EXE。
 
-Windows 剪貼簿通知元件使用 .NET Framework 4.x 執行環境。`Portable-WithFFmpeg.exe` 內含桌面執行環境與 FFmpeg，不需另裝影音元件或 7-Zip。AI 模型、模型服務與 Google OAuth client 仍須各自配置。
+Windows 剪貼簿通知元件使用 .NET Framework 4.x 執行環境。目前的 Windows 發布版本內含桌面執行環境與 FFmpeg，不需另裝影音元件或 7-Zip。AI 模型、模型服務與 Google OAuth client 仍須各自配置。
 
 ### 不含 FFmpeg 的版本
 
@@ -180,17 +180,17 @@ npm run package:portable
 
 此命令先建立不內附 FFmpeg 的資料夾包，再以固定的 **electron-builder 26.17.0** 和 NSIS portable target 建置單一 EXE。首次建置需網路下載 NSIS 等建置工具；工具已有快取後可重用。命令不會代跑 `npm ci`、`build:native` 或完整測試，也不會上傳或發布 Release。
 
-所有 portable 輸入必須使用空白 OAuth 範本。預設模式不能含有 FFmpeg 執行檔；含元件模式須明確提供 `--with-ffmpeg`。輸入若含 Google client 設定或不符合條件，建置會停止。一般工作資料、憑證、模型權重與三個 PC 模型服務不加入包內。
+所有單一 EXE 的打包輸入必須使用空白 OAuth 範本。預設模式不能含有 FFmpeg 執行檔；含元件模式須明確提供 `--with-ffmpeg`。輸入若含 Google client 設定或不符合條件，建置會停止。一般工作資料、憑證、模型權重與三個 PC 模型服務不加入包內。
 
 成功後輸出位置為：
 
 ```text
 local/releases/UFriend-<version>-portable-<timestamp>-<id>/
-  UFriend-<version>-Portable.exe
+  UFriend-<version>.exe
   PORTABLE-BUILD-INFO.json
 ```
 
-版本取自 `package.json`，例如 `UFriend-0.1.41-Portable.exe`。命令會印出實際位置與 EXE 的 SHA-256；build receipt 記錄輸入檔案校驗、工具版本及成品資訊。單一 EXE 每次啟動使用獨立暫存目錄，執行中的工作空間與持久影音元件位於使用者資料目錄。
+版本取自 `package.json`。後續建置統一使用 `UFriend-<version>.exe`，Release 標題採 `UFriend <version>`，不附加打包方式或影音元件名稱；已發布附件保留原檔名。命令會印出實際位置與 EXE 的 SHA-256；build receipt 記錄輸入檔案校驗、工具版本及成品資訊。單一 EXE 每次啟動使用獨立暫存目錄，執行中的工作空間與持久影音元件位於使用者資料目錄。
 
 ### 內建 FFmpeg 的單一 EXE
 
@@ -200,7 +200,7 @@ local/releases/UFriend-<version>-portable-<timestamp>-<id>/
 npm run package:portable -- --with-ffmpeg
 ```
 
-產物為 `UFriend-<version>-Portable-WithFFmpeg.exe`，例如 `UFriend-0.1.41-Portable-WithFFmpeg.exe`，同樣放在 `local/releases/` 的獨立建置目錄。它內含已驗證的 FFmpeg、GPL 原文、第三方授權清單與來源資訊；首次開啟即可匯出字幕影片和準備雲端轉錄音訊，不需另裝 FFmpeg 或 7-Zip。設定頁會顯示「影音元件已內建，無需另外安裝」。AI 模型與 Gmail 授權仍需各自配置。
+產物同樣命名為 `UFriend-<version>.exe`，放在 `local/releases/` 的獨立建置目錄；是否內含 FFmpeg 由 build receipt 記錄。它內含已驗證的 FFmpeg、GPL 原文、第三方授權清單與來源資訊；首次開啟即可匯出字幕影片和準備雲端轉錄音訊，不需另裝 FFmpeg 或 7-Zip。設定頁會顯示「影音元件已內建，無需另外安裝」。AI 模型與 Gmail 授權仍需各自配置。
 
 內建工具跟著每次啟動解壓到暫存目錄，並優先於既有使用者資料目錄中的選用安裝；舊的選用安裝仍保留。公開發布時必須一併提供 manifest 指定的完整對應原始碼與建置資料附件，見 [runtime 授權與來源紀錄](../development/FFMPEG_RUNTIME.md#授權與來源紀錄)。
 
@@ -237,7 +237,7 @@ npm run clean:dist
 
 這項整理只處理 `dist/` 中可辨識的 UFriend 資料夾成品，不清除 `local/releases/`、使用者工作資料或獨立模型服務。分享前應測試新 EXE 的啟動、正常退出、重啟、字幕匯出及音訊處理；內建 runtime 應在首次啟動就可用，選用安裝版則須驗證安裝後跨重啟可用。build receipt 不代表這些工作流程已全部測過。
 
-不含 FFmpeg 的成品只提供選用安裝器；公開 `WithFFmpeg` EXE 與其他含 FFmpeg 的成品須依 [FFmpeg 的授權與來源紀錄](../development/FFMPEG_RUNTIME.md#授權與來源紀錄)同時提供完整對應來源與聲明。
+不含 FFmpeg 的成品只提供選用安裝器；含 FFmpeg 的 EXE 或資料夾包須依 [FFmpeg 的授權與來源紀錄](../development/FFMPEG_RUNTIME.md#授權與來源紀錄)同時提供完整對應來源與聲明。
 
 ### 選配：Google 登入設定
 

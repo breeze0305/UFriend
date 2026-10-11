@@ -18,7 +18,7 @@ UFriend keeps your workspace on your computer and connects to separately configu
 | --- | --- |
 | Email | Import EML files or connect Gmail; read HTML mail, manage attachments and drafts, send mail, summarize and classify messages, and schedule daily organization. |
 | Recordings | Import audio or video, choose a transcription language, queue or schedule jobs, jump to timestamps, and edit or export TXT and SRT transcripts. |
-| Captioned video | Burn timed subtitles into a new MP4 with progress and cancellation, keeping the source video. FFmpeg is included in the `WithFFmpeg` release. |
+| Captioned video | Burn timed subtitles into a new MP4 with progress and cancellation, keeping the source video. The Windows release includes FFmpeg. |
 | Image text | Import an image or read a clipboard image, run OCR, compare the source with editable text, and copy the result. Automatic clipboard capture is opt-in. |
 | Writing | Stream chat responses, keep separate conversations, translate text, and polish writing by purpose and tone. Optional profile context and task prompts are configurable. |
 | Workspace | Local persistence and recovery backups, data cleanup, diagnostics, and system tray operation. |
@@ -27,14 +27,14 @@ AI results need review. Mail summaries currently use Traditional Chinese, indepe
 
 ## Run the Windows release
 
-1. Open [GitHub Releases](https://github.com/breeze0305/UFriend/releases) and download **UFriend-0.1.41-Portable-WithFFmpeg.exe** for Windows x64. Source archives and the separate FFmpeg developer package are not needed to run UFriend.
+1. Open [GitHub Releases](https://github.com/breeze0305/UFriend/releases) and download the **UFriend Windows EXE** attachment for Windows x64. Source archives and the separate FFmpeg developer package are not needed to run UFriend.
 2. Save the EXE in a folder you want to keep. If another version is running, quit it from the system tray menu first.
 3. Double-click the downloaded EXE. No installation wizard, Node.js, or manual extraction is needed.
 4. For English, open **設定 → 一般 → 軟體介面語言**, choose **English**, and save.
 
-The launcher extracts the application into a separate temporary directory for each run. Workspace data and encrypted credentials remain in your Windows user data directory; they are not stored inside the downloaded EXE or its temporary extraction folder. Restarting from the system tray launches the original portable EXE. Keep that file in place until you fully quit the app.
+The launcher extracts the application into a separate temporary directory for each run. Workspace data and encrypted credentials remain in your Windows user data directory; they are not stored inside the downloaded EXE or its temporary extraction folder. Restarting from the system tray launches the original downloaded EXE. Keep that file in place until you fully quit the app.
 
-**Included media runtime:** the `WithFFmpeg` EXE includes FFmpeg for captioned-video export and audio preparation for cloud speech transcription. No separate FFmpeg installation or 7-Zip is needed. **Settings → General → Media runtime** shows that the runtime is included. The release also provides its complete corresponding source, dependency sources, and build scripts as a separate download.
+The Windows release includes FFmpeg for captioned-video export and audio preparation for cloud speech transcription. No separate FFmpeg installation or 7-Zip is needed. **Settings → General → Media runtime** shows that the runtime is included. The release also provides its complete corresponding source, dependency sources, and build scripts as a separate download.
 
 Older releases and builds made without FFmpeg provide these optional installation controls instead:
 
@@ -42,7 +42,7 @@ Older releases and builds made without FFmpeg provide these optional installatio
 - **Select extracted package** opens a folder picker for an already extracted official package. It does not download anything or require 7-Zip.
 - **Media runtime instructions** opens the [runtime guide](docs/development/FFMPEG_RUNTIME.md).
 
-A runtime installed through the app is saved in your user data directory and remains available after restarting or replacing the portable EXE. Local Whisper uses its own independently installed runtime. AI model services and Gmail still require the separate configuration described below.
+A runtime installed through the app is saved in your user data directory and remains available after restarting or replacing the EXE. Local Whisper uses its own independently installed runtime. AI model services and Gmail still require the separate configuration described below.
 
 If you use a folder-based UFriend ZIP package instead, extract the **entire ZIP**, keep its DLLs, resources, and license files together, and run its `UFriend.exe`. UFriend folder packages built without FFmpeg also include `Install media runtime.cmd`; the runtime guide covers that alternative. The separate FFmpeg developer ZIP is not a UFriend app package.
 
@@ -93,13 +93,13 @@ npm test
 npm start
 ```
 
-After quitting the app, build the single-file Windows portable EXE:
+After quitting the app, build the single-file Windows EXE:
 
 ```powershell
 npm run package:portable
 ```
 
-This uses the pinned electron-builder 26.17.0 NSIS portable target. The first build needs network access to download its build tools. It creates and validates a folder package without FFmpeg or embedded OAuth settings, then writes `UFriend-<version>-Portable.exe` and its build receipt under `local/releases/UFriend-<version>-portable-<timestamp>-<id>/`. The verified folder package remains under `dist/`.
+This uses the pinned electron-builder 26.17.0 NSIS portable target. The first build needs network access to download its build tools. It creates and validates a folder package without FFmpeg or embedded OAuth settings, then writes `UFriend-<version>.exe` and its build receipt under `local/releases/UFriend-<version>-portable-<timestamp>-<id>/`. The verified folder package remains under `dist/`. New builds use this filename without packaging or runtime suffixes; already published assets retain their original names.
 
 For the release format with FFmpeg already inside the single EXE, first prepare the pinned UFriend-built runtime, then run:
 
@@ -107,7 +107,7 @@ For the release format with FFmpeg already inside the single EXE, first prepare 
 npm run package:portable -- --with-ffmpeg
 ```
 
-This creates `UFriend-<version>-Portable-WithFFmpeg.exe`. A bundled runtime takes precedence over an older optional installation in user data. The executable includes the GPL license, third-party notices, and source information. Publish the matching complete source archive alongside the EXE; a successful binary build alone does not complete this step. See the [runtime guide](docs/development/FFMPEG_RUNTIME.md#授權與來源紀錄).
+This also creates `UFriend-<version>.exe`, in its own build directory. The build receipt records whether FFmpeg is included. A bundled runtime takes precedence over an older optional installation in user data. The executable includes the GPL license, third-party notices, and source information. Publish the matching complete source archive alongside the EXE; a successful binary build alone does not complete this step. See the [runtime guide](docs/development/FFMPEG_RUNTIME.md#授權與來源紀錄).
 
 To create only the folder package for ZIP distribution, use `npm run package -- --without-ffmpeg`. For a local folder package using the prepared FFmpeg runtime, use `npm run package`. Packaging does not run the full test suite or publish a release. See the [installation guide](docs/guides/INSTALL_BUILD.md) for isolated development data, UI smoke tests, prerequisites, and packaging details.
 

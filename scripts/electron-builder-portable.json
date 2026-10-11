@@ -2,7 +2,7 @@
   "appId": "com.breeze0305.ufriend",
   "productName": "UFriend",
   "executableName": "UFriend",
-  "artifactName": "UFriend-${version}-Portable.${ext}",
+  "artifactName": "UFriend-${version}.${ext}",
   "compression": "normal",
   "npmRebuild": false,
   "nodeGypRebuild": false,

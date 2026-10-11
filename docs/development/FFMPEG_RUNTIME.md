@@ -8,7 +8,7 @@ UFriend 使用獨立的 FFmpeg 程序處理含字幕影片匯出，以及雲端�
 
 ## 已內建的版本
 
-`UFriend-0.1.41-Portable-WithFFmpeg.exe` 開啟後即可使用 FFmpeg，不需下載元件或安裝 7-Zip。**設定 → 一般 → 影音元件** 顯示「影音元件已內建，無需另外安裝」。AI 轉錄、OCR、LLM 與 Gmail 仍依各自設定使用。
+目前的 UFriend Windows 發布版本開啟後即可使用 FFmpeg，不需下載元件或安裝 7-Zip。**設定 → 一般 → 影音元件** 顯示「影音元件已內建，無需另外安裝」。AI 轉錄、OCR、LLM 與 Gmail 仍依各自設定使用。
 
 ## 從 UFriend 設定安裝
 
@@ -39,7 +39,7 @@ UFriend 使用獨立的 FFmpeg 程序處理含字幕影片匯出，以及雲端�
   runtime.json
 ```
 
-它與工作資料 `%APPDATA%\UFriend\workspace` 分開，不放在單一 EXE 每次啟動產生的暫存解壓目錄。使用相同 Windows 帳戶及資料目錄時，重新啟動或換成新的 portable EXE 後仍可使用。若設定 `UFRIEND_DATA_DIR`，影音元件會保存在該目錄下的 `media-runtime/ffmpeg/`。
+它與工作資料 `%APPDATA%\UFriend\workspace` 分開，不放在單一 EXE 每次啟動產生的暫存解壓目錄。使用相同 Windows 帳戶及資料目錄時，重新啟動或換成新的 EXE 後仍可使用。若設定 `UFRIEND_DATA_DIR`，影音元件會保存在該目錄下的 `media-runtime/ffmpeg/`。
 
 含元件版本優先使用程式內 `resources/ffmpeg/` 的已驗證 runtime；未內建的版本使用這個持久 runtime。關閉程式不刪除已成功安裝的影音元件，工作空間資料清理也不包含它。
 
@@ -111,8 +111,8 @@ $env:UFRIEND_TEST_FFMPEG = (Resolve-Path -LiteralPath (Join-Path $ffmpegSource '
 
 | 命令 | 產物及 FFmpeg 處理 |
 | --- | --- |
-| `npm run package:portable` | 單一 Windows portable EXE。使用無內附 FFmpeg、無 OAuth 設定的資料夾包作為輸入，透過 electron-builder NSIS portable target 包裝；供使用者從設定頁安裝 runtime。 |
-| `npm run package:portable -- --with-ffmpeg` | 內建版單一 EXE，檔名為 `Portable-WithFFmpeg.exe`。內含自建 FFmpeg 與授權／來源文件，並在包裝前核對雜湊、版本、字幕濾鏡及編碼器；首次使用不需安裝影音元件。 |
+| `npm run package:portable` | 單一 Windows EXE，檔名為 `UFriend-<version>.exe`。使用無內附 FFmpeg、無 OAuth 設定的資料夾包作為輸入，透過 electron-builder NSIS portable target 包裝；供使用者從設定頁安裝 runtime。 |
+| `npm run package:portable -- --with-ffmpeg` | 單一 EXE，同樣命名為 `UFriend-<version>.exe`。內含自建 FFmpeg 與授權／來源文件，並在包裝前核對雜湊、版本、字幕濾鏡及編碼器；首次使用不需安裝影音元件。 |
 | `npm run package -- --without-ffmpeg` | 可供 ZIP 分發的資料夾包。附設定頁安裝器、CMD 入口、版本資訊及上游聲明，不附 FFmpeg 執行檔；無需開發用 FFmpeg 快取即可打包。 |
 | `npm run package` | 從已驗證的開發快取複製 runtime 的資料夾包，適合本機使用。打包前及複製後均進行校驗與功能探測。 |
 

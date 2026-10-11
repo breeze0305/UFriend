@@ -184,7 +184,7 @@ function buildPortable({ prepackaged, withFfmpeg = false, root = projectRoot, ru
   const staging = path.join(releases, '.' + buildName + '.building');
   const output = path.join(releases, buildName);
   fs.mkdirSync(staging);
-  const artifactName = `UFriend-${manifest.version}-Portable${withFfmpeg ? '-WithFFmpeg' : ''}.exe`;
+  const artifactName = `UFriend-${manifest.version}.exe`;
   const args = [cli, '--win', 'portable', '--x64', '--prepackaged', input,
     '--config', configFile, '--config.directories.output=' + staging,
     '--config.artifactName=' + artifactName, '--publish', 'never'];
@@ -206,7 +206,7 @@ function buildPortable({ prepackaged, withFfmpeg = false, root = projectRoot, ru
   realDirectory(releases);
   realDirectory(staging);
   fs.renameSync(staging, output);
-  console.log('Portable EXE: ' + path.join(output, artifactName));
+  console.log('Windows EXE: ' + path.join(output, artifactName));
   console.log('SHA-256: ' + artifact.sha256);
   // Neither a failed folder build nor a failed single-file build gets here.
   printReport(prune(path.join(root, 'dist')));
@@ -219,7 +219,7 @@ if (require.main === module) {
     const options = portableOptions(process.argv.slice(2));
     withDistLock(path.join(projectRoot, 'dist'), () => buildPortable(options));
   } catch (error) {
-    console.error('Portable packaging failed: ' + error.message);
+    console.error('Windows EXE packaging failed: ' + error.message);
     process.exitCode = 1;
   }
 }

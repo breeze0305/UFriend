@@ -6,7 +6,7 @@ The root README provides an English overview and quick start. The detailed guide
 
 ## User guides
 
-- [Installation and build](guides/INSTALL_BUILD.md): the single-file portable EXE, ZIP alternatives, Windows requirements, source setup, tests, and packaging.
+- [Installation and build](guides/INSTALL_BUILD.md): the Windows EXE, ZIP alternatives, Windows requirements, source setup, tests, and packaging.
 - [User manual](guides/APP_README.md): email, recordings, subtitles, OCR, writing, settings, and workspace recovery.
 - [PC model services](guides/PC_MODELS.md): separately distributed services, requirements, local endpoints, and connection checks.
 - [Local and cloud model sources](guides/MODEL_SOURCES.md): task defaults, provider requirements, and data transmission.
