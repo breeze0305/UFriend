@@ -1,7 +1,7 @@
 {
   "name": "ufriend",
   "productName": "UFriend",
-  "version": "0.1.38",
+  "version": "0.1.39",
   "private": true,
   "description": "A local-first Windows workspace for email, transcription, OCR and AI writing.",
   "main": "app/main.cjs",
@@ -15,7 +15,8 @@
     "smoke": "electron . --smoke-test",
     "smoke:models": "electron . --model-smoke-test",
     "smoke:clipboard": "electron . --clipboard-smoke-test",
-    "smoke:llm": "electron . --llm-features-smoke-test"
+    "smoke:llm": "electron . --llm-features-smoke-test",
+    "package:portable": "node scripts/package-portable.cjs"
   },
   "dependencies": {
     "dompurify": "3.4.15",
@@ -26,7 +27,8 @@
     "opencc-js": "1.4.2"
   },
   "devDependencies": {
-    "electron": "44.3.0"
+    "electron": "44.3.0",
+    "electron-builder": "26.17.0"
   },
   "license": "MIT",
   "repository": {
@@ -39,5 +41,6 @@
   "homepage": "https://github.com/breeze0305/UFriend#readme",
   "engines": {
     "node": ">=22.12.0"
-  }
+  },
+  "author": "breeze0305"
 }

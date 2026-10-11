@@ -121,10 +121,142 @@ test('an existing incomplete runtime is preserved rather than overwritten', wind
 test('downloaded archive hash is checked before the extraction tool can run', windows, t => {
   const f = fixture(t);
   const installer = f.installer.replace(/'/g, "''");
-  const command = `function Get-Command { param($Name, $CommandType, $ErrorAction) [pscustomobject]@{Source='must-not-be-executed.exe'} }; function Invoke-WebRequest { param($Uri, $OutFile, [switch]$UseBasicParsing) [IO.File]::WriteAllText($OutFile, 'Wrong archive fixture') }; & '${installer}'`;
+  const command = `function Get-Command { param($Name, $CommandType, $ErrorAction) [pscustomobject]@{Source='must-not-be-executed.exe'} }; function Invoke-WebRequest { param($Uri, $OutFile, [switch]$UseBasicParsing, $TimeoutSec) if ($TimeoutSec -ne 300) { throw 'Missing bounded download timeout.' }; [IO.File]::WriteAllText($OutFile, 'Wrong archive fixture') }; & '${installer}'`;
   const result = spawnSync('powershell.exe', ['-NoProfile', '-NonInteractive', '-ExecutionPolicy', 'Bypass', '-Command', command], { encoding: 'utf8', windowsHide: true, timeout: 20000 });
   assert.equal(result.status, 1, result.stdout + result.stderr);
   assert.match(result.stderr, /SHA-256 mismatch: ffmpeg.7z/);
   assert.doesNotMatch(result.stderr, /must-not-be-executed/);
+  assert.equal(fs.existsSync(f.destination), false);
+});
+
+test('a persistent destination is created outside the extracted app and repeated installation leaves it intact', windows, t => {
+  const f = fixture(t), { source, manifest } = upstreamFixture(f);
+  const runtimeRoot = path.join(f.root, 'user data [portable]', 'media-runtime');
+  const destination = path.join(runtimeRoot, 'ffmpeg');
+  assert.equal(fs.existsSync(runtimeRoot), false);
+  const first = runInstaller(f, ['-From', source, '-DestinationRoot', runtimeRoot]);
+  assert.equal(first.status, 0, first.stdout + first.stderr);
+  assert.equal(fs.existsSync(f.destination), false, 'A persistent install must not enter the temporary application resources.');
+  assert.deepEqual(fs.readdirSync(runtimeRoot), ['ffmpeg']);
+  assert.deepEqual(fs.readdirSync(destination).sort(), ['COPYING.GPLv3.txt', 'SOURCES.md', 'UPSTREAM-README.txt', 'ffmpeg.exe', 'runtime.json'].sort());
+  for (const [name, expected] of Object.entries(manifest.sha256)) assert.equal(hash(fs.readFileSync(path.join(destination, name))), expected);
+  assert.equal(hash(fs.readFileSync(path.join(destination, 'runtime.json'))), hash(fs.readFileSync(path.join(f.setup, 'runtime.json'))));
+  const before = fs.statSync(path.join(destination, 'ffmpeg.exe')).mtimeMs;
+  const second = runInstaller(f, ['-From', path.join(f.root, 'not-needed'), '-DestinationRoot', runtimeRoot]);
+  assert.equal(second.status, 0, second.stdout + second.stderr);
+  assert.match(second.stdout, /already installed/);
+  assert.equal(fs.statSync(path.join(destination, 'ffmpeg.exe')).mtimeMs, before);
+  assert.deepEqual(fs.readdirSync(runtimeRoot), ['ffmpeg']);
+});
+
+test('a failed persistent install removes only its staging and preserves unrelated user files', windows, t => {
+  const f = fixture(t), { source } = upstreamFixture(f);
+  const runtimeRoot = path.join(f.root, 'persistent media');
+  fs.mkdirSync(runtimeRoot);
+  fs.writeFileSync(path.join(runtimeRoot, 'keep.txt'), 'Unrelated user file.');
+  fs.writeFileSync(path.join(source, 'bin', 'ffmpeg.exe'), 'Incorrect upstream content.');
+  const result = runInstaller(f, ['-From', source, '-DestinationRoot', runtimeRoot]);
+  assert.equal(result.status, 1, result.stdout + result.stderr);
+  assert.match(result.stderr, /SHA-256 mismatch: ffmpeg.exe/);
+  assert.deepEqual(fs.readdirSync(runtimeRoot), ['keep.txt']);
+  assert.equal(fs.readFileSync(path.join(runtimeRoot, 'keep.txt'), 'utf8'), 'Unrelated user file.');
+  assert.equal(fs.existsSync(f.destination), false);
+  assert.equal(fs.readFileSync(path.join(source, 'bin', 'ffmpeg.exe'), 'utf8'), 'Incorrect upstream content.');
+});
+
+test('an existing incomplete persistent runtime is preserved without staging or replacement', windows, t => {
+  const f = fixture(t), { source } = upstreamFixture(f);
+  const runtimeRoot = path.join(f.root, 'persistent media'), destination = path.join(runtimeRoot, 'ffmpeg');
+  fs.mkdirSync(destination, { recursive: true });
+  fs.writeFileSync(path.join(destination, 'keep.txt'), 'Existing user runtime.');
+  const result = runInstaller(f, ['-From', source, '-DestinationRoot', runtimeRoot]);
+  assert.equal(result.status, 1, result.stdout + result.stderr);
+  assert.deepEqual(fs.readdirSync(runtimeRoot), ['ffmpeg']);
+  assert.deepEqual(fs.readdirSync(destination), ['keep.txt']);
+  assert.equal(fs.readFileSync(path.join(destination, 'keep.txt'), 'utf8'), 'Existing user runtime.');
+});
+
+test('persistent destinations reject relative paths and files without changing existing data', windows, t => {
+  const f = fixture(t), { source } = upstreamFixture(f);
+  for (const runtimeRoot of ['', 'relative-media-runtime', 'C:relative-media-runtime', '\\relative-media-runtime']) {
+    const result = runInstaller(f, ['-From', source, '-DestinationRoot', runtimeRoot]);
+    assert.equal(result.status, 1, result.stdout + result.stderr);
+    if (runtimeRoot) assert.match(result.stderr.replace(/\r?\n/g, ''), /absolute directory path/);
+  }
+  const file = path.join(f.root, 'existing file');
+  fs.writeFileSync(file, 'Must be preserved.');
+  const result = runInstaller(f, ['-From', source, '-DestinationRoot', file]);
+  assert.equal(result.status, 1, result.stdout + result.stderr);
+  assert.match(result.stderr.replace(/\r?\n/g, ''), /must be a real directory/);
+  assert.equal(fs.readFileSync(file, 'utf8'), 'Must be preserved.');
+  assert.equal(fs.existsSync(f.destination), false);
+});
+
+test('persistent destinations reject linked roots, linked ancestors and linked runtime directories', windows, t => {
+  const f = fixture(t), { source } = upstreamFixture(f);
+  const target = path.join(f.root, 'link target'), link = path.join(f.root, 'linked root');
+  fs.mkdirSync(target);
+  fs.writeFileSync(path.join(target, 'keep.txt'), 'Link target must stay unchanged.');
+  fs.symlinkSync(target, link, 'junction');
+  try {
+    for (const runtimeRoot of [link, path.join(link, 'child media')]) {
+      const result = runInstaller(f, ['-From', source, '-DestinationRoot', runtimeRoot]);
+      assert.equal(result.status, 1, result.stdout + result.stderr);
+      assert.match(result.stderr, /Linked or redirected paths/);
+      assert.deepEqual(fs.readdirSync(target), ['keep.txt']);
+    }
+  } finally {
+    assert.equal(path.dirname(link), f.root);
+    assert.equal(fs.lstatSync(link).isSymbolicLink(), true);
+    fs.unlinkSync(link);
+  }
+  const runtimeRoot = path.join(f.root, 'persistent media'), destination = path.join(runtimeRoot, 'ffmpeg');
+  fs.mkdirSync(runtimeRoot);
+  fs.symlinkSync(target, destination, 'junction');
+  try {
+    const result = runInstaller(f, ['-From', source, '-DestinationRoot', runtimeRoot]);
+    assert.equal(result.status, 1, result.stdout + result.stderr);
+    assert.match(result.stderr, /Linked or redirected paths/);
+    assert.deepEqual(fs.readdirSync(target), ['keep.txt']);
+    assert.equal(fs.readFileSync(path.join(target, 'keep.txt'), 'utf8'), 'Link target must stay unchanged.');
+  } finally {
+    assert.equal(path.dirname(destination), runtimeRoot);
+    assert.equal(fs.lstatSync(destination).isSymbolicLink(), true);
+    fs.unlinkSync(destination);
+  }
+  const danglingTarget = path.join(f.root, 'missing link target'), danglingLink = path.join(f.root, 'dangling root');
+  fs.symlinkSync(danglingTarget, danglingLink, 'junction');
+  try {
+    const result = runInstaller(f, ['-From', source, '-DestinationRoot', danglingLink]);
+    assert.equal(result.status, 1, result.stdout + result.stderr);
+    assert.match(result.stderr, /Linked or redirected paths/);
+    assert.equal(fs.existsSync(danglingTarget), false, 'Reject a dangling junction before any directory creation.');
+  } finally {
+    assert.equal(path.dirname(danglingLink), f.root);
+    assert.equal(fs.lstatSync(danglingLink).isSymbolicLink(), true);
+    fs.unlinkSync(danglingLink);
+  }
+});
+
+test('a persistent destination does not bypass validation of the extracted application package', windows, t => {
+  const f = fixture(t), { source } = upstreamFixture(f);
+  const runtimeRoot = path.join(f.root, 'must not be created');
+  f.build.videoRuntime.expectedSha256 = '0'.repeat(64);
+  fs.writeFileSync(path.join(f.output, 'BUILD-INFO.json'), JSON.stringify(f.build));
+  const result = runInstaller(f, ['-From', source, '-DestinationRoot', runtimeRoot]);
+  assert.equal(result.status, 1, result.stdout + result.stderr);
+  assert.match(result.stderr.replace(/\r?\n/g, ''), /does not match this package build/);
+  assert.equal(fs.existsSync(runtimeRoot), false);
+});
+
+test('persistent installation verifies the real pinned upstream package when explicitly supplied', {
+  skip: process.platform !== 'win32' || !process.env.UFRIEND_TEST_MEDIA_SOURCE,
+}, t => {
+  const f = fixture(t), runtimeRoot = path.join(f.root, 'real pinned media');
+  const result = runInstaller(f, ['-From', process.env.UFRIEND_TEST_MEDIA_SOURCE, '-DestinationRoot', runtimeRoot]);
+  assert.equal(result.status, 0, result.stdout + result.stderr);
+  const destination = path.join(runtimeRoot, 'ffmpeg');
+  for (const [name, expected] of Object.entries(pinnedRuntime.sha256)) assert.equal(hash(fs.readFileSync(path.join(destination, name))), expected);
+  assert.deepEqual(fs.readdirSync(runtimeRoot), ['ffmpeg']);
   assert.equal(fs.existsSync(f.destination), false);
 });

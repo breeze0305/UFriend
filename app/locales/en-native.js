@@ -1,6 +1,14 @@
 (function(){
   'use strict';
   const entries={
+    'UFriend 正在關閉，請稍後再試。':'UFriend is closing. Try again after reopening it.',
+    '選擇已解壓的官方 FFmpeg 套件':'Select the extracted official FFmpeg package',
+    '此版本沒有影音元件安裝器，請查看安裝說明。':'This build has no media runtime installer. See the installation instructions.',
+    '影音元件正在安裝，請稍候。':'The media runtime is being installed. Please wait.',
+    '找不到 7-Zip。請先安裝 7-Zip，或選擇已解壓的官方 FFmpeg 套件。':'7-Zip was not found. Install 7-Zip first, or select an extracted official FFmpeg package.',
+    '影音元件安裝失敗。請使用已解壓的官方套件重試，或查看安裝說明。':'Media runtime installation failed. Retry with the extracted official package, or see the installation instructions.',
+    '影音元件安裝已取消。':'Media runtime installation was cancelled.',
+    '影音元件安裝尚未停止，請稍後再試。':'Media runtime installation has not stopped yet. Try again shortly.',
     '郵件排版內容過大，暫時顯示純文字。':'The formatted message is too large. Showing plain text for now.',
     '郵件排版元件尚未載入。':'The message formatting component has not loaded yet.',
     '圖片無法顯示':'Image unavailable',

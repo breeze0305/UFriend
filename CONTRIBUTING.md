@@ -17,4 +17,4 @@ Discuss larger changes in an issue before implementing them. Keep changes focuse
 
 Do not include credentials, OAuth downloads, personal mail, recordings, model weights, dependency folders, release packages, or test output. Keep `app/config/google-oauth.json` as the empty template. The PC model services are separate projects; their changes belong in their own repositories.
 
-Build and packaging details, including FFmpeg prerequisites, are in the [installation guide](docs/guides/INSTALL_BUILD.md). A successful package build is not a substitute for workflow tests.
+Build and packaging details, including FFmpeg prerequisites, are in the [installation guide](docs/guides/INSTALL_BUILD.md). `npm run package:portable` builds the single-file EXE with the pinned electron-builder toolchain; it does not publish it. Changes to the portable launcher or media installer should be checked for restart behavior, data persistence, and failures that preserve existing files. A successful package build is not a substitute for workflow tests.

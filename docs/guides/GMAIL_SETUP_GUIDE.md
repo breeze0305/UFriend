@@ -68,7 +68,7 @@ UFriend 使用這個範圍讀取與管理郵件、處理草稿及寄送。它屬
 
 ## 開發者：在自己的成品中預先配置
 
-一般公開 ZIP 使用者應採上面的本機匯入方式。若維護自己的發行版本，可在打包時指定外部 OAuth JSON，完整流程見[安裝指南](INSTALL_BUILD.md#選配google-登入設定)。
+一般公開發行版使用者應採上面的本機匯入方式。若維護自己的發行版本，可在打包時指定外部 OAuth JSON，完整流程見[安裝指南](INSTALL_BUILD.md#選配google-登入設定)。
 
 `app/config/google-oauth.json` 應維持空白範本。打包器的 `UFRIEND_GOOGLE_OAUTH_FILE` 只把必要的 Desktop client 欄位寫入新成品；它們會隨該成品分發，使用者的授權 Token 仍另外保存在本機。打包成功或 `gmailConfigured: true` 都不代表 Google 已驗證應用程式。
 

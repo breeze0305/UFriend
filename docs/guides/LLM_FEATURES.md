@@ -1,6 +1,6 @@
 # LLM 功能與除錯指南
 
-適用 UFriend 0.1.38。預設簡短主題摘要需 PC-LLM-API 0.1.10 或更新版，雲端支援 OpenAI 相容 API。[返回桌面使用說明](APP_README.md) · [模型來源指南](MODEL_SOURCES.md) · [PC 服務啟動指南](PC_MODELS.md)
+適用 UFriend 0.1.39。預設簡短主題摘要需 PC-LLM-API 0.1.10 或更新版，雲端支援 OpenAI 相容 API。[返回桌面使用說明](APP_README.md) · [模型來源指南](MODEL_SOURCES.md) · [PC 服務啟動指南](PC_MODELS.md)
 
 設定以固定選單分為六類；視窗較窄或較矮時，分類列在內容上方。切換分類會保留當次尚未保存的表單內容，需保存的項目仍須按對應按鈕才生效；重啟只恢復已保存設定。完整入口見[設定分類](APP_README.md#設定分類)。
 

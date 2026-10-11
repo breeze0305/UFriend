@@ -8,7 +8,7 @@
 
 UFriend keeps your workspace on your computer and connects to separately configured local or cloud AI services. Review the original material alongside the result, edit it, and decide how to use it. The interface supports English and Traditional Chinese, with light, dark, and system themes.
 
-**Current version: 0.1.38 · Windows x64 · Electron 44**
+**Current version: 0.1.39 · Windows x64 · Electron 44**
 
 [Releases](https://github.com/breeze0305/UFriend/releases) · [Documentation](docs/README.md) · [使用手冊（繁體中文）](docs/guides/APP_README.md) · [Report an issue](https://github.com/breeze0305/UFriend/issues)
 
@@ -27,16 +27,24 @@ AI results need review. Mail summaries currently use Traditional Chinese, indepe
 
 ## Run the Windows release
 
-1. Open [GitHub Releases](https://github.com/breeze0305/UFriend/releases) and download the Windows x64 release ZIP. GitHub's **Source code** archives are not runnable desktop packages.
-2. Extract the **entire ZIP** into a normal folder. Keep the adjacent DLLs, `resources`, `locales`, and license files with the executable.
-3. If another version is running, quit it from the system tray menu, then launch `UFriend.exe` from the extracted folder.
+1. Open [GitHub Releases](https://github.com/breeze0305/UFriend/releases) and download **UFriend-0.1.39-Portable.exe** for Windows x64. GitHub's **Source code** archives are not runnable desktop packages.
+2. Save the EXE in a folder you want to keep. If another version is running, quit it from the system tray menu first.
+3. Double-click the downloaded EXE. No installation wizard, Node.js, or manual extraction is needed.
 4. For English, open **設定 → 一般 → 軟體介面語言**, choose **English**, and save.
 
-The desktop package does not require Node.js. AI models and services are installed separately.
+The launcher extracts the application into a separate temporary directory for each run. Workspace data and encrypted credentials remain in your Windows user data directory; they are not stored inside the downloaded EXE or its temporary extraction folder. Restarting from the system tray launches the original portable EXE. Keep that file in place until you fully quit the app.
 
-**Optional media runtime:** the public ZIP does not include the FFmpeg executable. For captioned-video export or cloud speech transcription, run `Install media runtime.cmd` in the extracted application folder. The installer downloads the pinned build from Gyan's official site and verifies its hashes. It needs 7-Zip; an already extracted package can instead be supplied through the PowerShell installer's `-From` option. See the [runtime guide](docs/development/FFMPEG_RUNTIME.md) for exact commands and paths. Local Whisper uses its own independently installed runtime.
+**Optional media runtime:** the public EXE contains no FFmpeg executable, AI models, or shared OAuth client. For captioned-video export or cloud speech transcription, open **Settings → General → Media runtime**:
 
-Workspace data is separate from the application folder. Use the data-location control in **Settings → General** to find it. Fully quit UFriend before backing up the workspace or replacing application files.
+- **Download and install media runtime** downloads the pinned build from Gyan and verifies its hashes. An existing 7-Zip installation is required.
+- **Select extracted package** opens a folder picker for an already extracted official package. It does not download anything or require 7-Zip.
+- **Media runtime instructions** opens the [runtime guide](docs/development/FFMPEG_RUNTIME.md).
+
+A runtime installed through the app is saved in your user data directory and remains available after restarting or replacing the portable EXE. Local Whisper uses its own independently installed runtime. AI model services and Gmail still require the separate configuration described below.
+
+If you use a folder-based ZIP package instead, extract the **entire ZIP**, keep its DLLs, resources, and license files together, and run its `UFriend.exe`. The ZIP also includes `Install media runtime.cmd`; the runtime guide covers that alternative.
+
+Use the data-location control in **Settings → General** to find the workspace. Fully quit UFriend before backing it up or replacing application files.
 
 ## Configure AI and Gmail
 
@@ -83,13 +91,15 @@ npm test
 npm start
 ```
 
-After quitting the app, create a Windows portable package without an embedded FFmpeg executable:
+After quitting the app, build the single-file Windows portable EXE:
 
 ```powershell
-npm run package -- --without-ffmpeg
+npm run package:portable
 ```
 
-For a local package using the prepared FFmpeg runtime, use `npm run package`. The output is written to `dist/UFriend-<version>/`, or a timestamped directory if that version already exists. Packaging does not run the full test suite for you. See the installation guide for isolated development data, UI smoke tests, media prerequisites, and packaging details.
+This uses the pinned electron-builder 26.17.0 NSIS portable target. The first build needs network access to download its build tools. It creates and validates a folder package without FFmpeg or embedded OAuth settings, then writes `UFriend-<version>-Portable.exe` and its build receipt under `local/releases/UFriend-<version>-portable-<timestamp>-<id>/`. The verified folder package remains under `dist/`.
+
+To create only the folder package for ZIP distribution, use `npm run package -- --without-ffmpeg`. For a local folder package using the prepared FFmpeg runtime, use `npm run package`. Packaging does not run the full test suite or publish a release. See the [installation guide](docs/guides/INSTALL_BUILD.md) for isolated development data, UI smoke tests, prerequisites, and packaging details.
 
 ## Architecture and data
 
@@ -103,7 +113,7 @@ flowchart LR
     Main --> FFmpeg[Local FFmpeg process]
 ```
 
-- Mail, files, settings, and completed work are stored locally. Ordinary workspace files are not encrypted by UFriend. Credentials use Electron `safeStorage`, backed by the Windows user account.
+- Mail, files, settings, and completed work are stored locally, normally under `%APPDATA%\UFriend\workspace`. Ordinary workspace files are not encrypted by UFriend. Credentials use Electron `safeStorage`, backed by the Windows user account. An app-installed media runtime is stored separately under `%APPDATA%\UFriend\media-runtime\ffmpeg`.
 - Gmail operations connect to Google. External email images connect to their source websites. Local inference does not make every feature offline.
 - Cloud tasks send the necessary input to the configured endpoint. Chat includes the current conversation history; enabled profile context is included only in the applicable text tasks. Provider retention and charges depend on the provider.
 - Model output does not independently send mail, delete messages, create calendar events, or execute programs.

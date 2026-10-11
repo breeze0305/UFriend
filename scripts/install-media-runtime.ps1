@@ -1,29 +1,35 @@
 [CmdletBinding()]
-param([string]$From = '')
+param(
+    [string]$From = '',
+    [string]$DestinationRoot = ''
+)
 
 # Optional, user-invoked installer. No administrator access or system tool install.
-# Only the pinned upstream executable and its notices enter this portable folder.
+# Only the pinned upstream executable and its notices enter the selected location.
 Set-StrictMode -Version Latest
 $ErrorActionPreference = 'Stop'
 $workRoot = $null
+$workRootCreated = $false
 $resourcesRoot = $null
+$runtimeRoot = $null
 
 function Assert-ChildPath([string]$Parent, [string]$Child) {
     $parentPath = [IO.Path]::GetFullPath($Parent).TrimEnd([IO.Path]::DirectorySeparatorChar) + [IO.Path]::DirectorySeparatorChar
     $childPath = [IO.Path]::GetFullPath($Child)
     if (-not $childPath.StartsWith($parentPath, [StringComparison]::OrdinalIgnoreCase)) {
-        throw 'A media runtime path escapes the portable application folder.'
+        throw 'A media runtime path escapes the selected installation directory.'
     }
 }
 
 function Assert-PlainPath([string]$Path) {
     $currentPath = [IO.Path]::GetFullPath($Path)
     while ($currentPath) {
-        if (Test-Path -LiteralPath $currentPath) {
-            $item = Get-Item -LiteralPath $currentPath -Force
-            if ($item.Attributes -band [IO.FileAttributes]::ReparsePoint) {
-                throw 'Linked or redirected paths are not supported by this installer.'
-            }
+        # Get-Item also inspects a dangling link whose target does not exist.
+        $item = $null
+        try { $item = Get-Item -LiteralPath $currentPath -Force -ErrorAction Stop }
+        catch [System.Management.Automation.ItemNotFoundException] { }
+        if ($item -and ($item.Attributes -band [IO.FileAttributes]::ReparsePoint)) {
+            throw 'Linked or redirected paths are not supported by this installer.'
         }
         $parentPath = [IO.Path]::GetDirectoryName($currentPath)
         if ($parentPath -eq $currentPath) { break }
@@ -36,6 +42,13 @@ function Assert-PlainTree([string]$Path) {
     foreach ($item in Get-ChildItem -LiteralPath $Path -Force) {
         if ($item.Attributes -band [IO.FileAttributes]::ReparsePoint) { throw 'A temporary folder contains a link; it has been preserved.' }
         if ($item.PSIsContainer) { Assert-PlainTree $item.FullName }
+    }
+}
+
+function Assert-PlainDirectory([string]$Path) {
+    Assert-PlainPath $Path
+    if (-not (Test-Path -LiteralPath $Path -PathType Container)) {
+        throw 'The media runtime installation root must be a real directory.'
     }
 }
 
@@ -110,8 +123,24 @@ try {
     foreach ($name in @('COPYING.GPLv3.txt', 'UPSTREAM-README.txt', 'SOURCES.md')) {
         Assert-Hash (Join-Path $setupRoot $name) $runtime.sha256.$name
     }
-    $destination = Join-Path $resourcesRoot 'ffmpeg'
-    Assert-ChildPath $resourcesRoot $destination
+    $runtimeRoot = $resourcesRoot
+    if ($PSBoundParameters.ContainsKey('DestinationRoot')) {
+        # A persistent destination is supplied by UFriend's user-data settings.
+        # Reject drive-relative paths such as C:cache and relative working paths.
+        if ([string]::IsNullOrWhiteSpace($DestinationRoot) -or $DestinationRoot -notmatch '^(?:[A-Za-z]:[\\/]|\\\\[^\\]+\\[^\\]+(?:\\|$))') {
+            throw '-DestinationRoot must be an absolute directory path.'
+        }
+        $runtimeRoot = [IO.Path]::GetFullPath($DestinationRoot)
+        Assert-PlainPath $runtimeRoot
+        if (Test-Path -LiteralPath $runtimeRoot) {
+            Assert-PlainDirectory $runtimeRoot
+        } else {
+            [void][IO.Directory]::CreateDirectory($runtimeRoot)
+        }
+    }
+    Assert-PlainDirectory $runtimeRoot
+    $destination = Join-Path $runtimeRoot 'ffmpeg'
+    Assert-ChildPath $runtimeRoot $destination
     Assert-PlainPath $destination
     if (Test-Path -LiteralPath $destination) {
         Assert-Runtime $destination $runtime
@@ -129,15 +158,21 @@ try {
             Write-Host 'Verify with: Get-FileHash -Algorithm SHA256 -LiteralPath <downloaded archive>'
             Write-Host 'Extract the archive with your own 7-Zip-compatible tool. Then run:'
             Write-Host '  "Install media runtime.cmd" -From "C:\path\ffmpeg-8.1.2-essentials_build"'
+            if ($PSBoundParameters.ContainsKey('DestinationRoot')) {
+                Write-Host 'Keep the same -DestinationRoot when using -From with the extracted package.'
+            }
             throw '7-Zip is required for automatic extraction; use -From with an already extracted upstream package.'
         }
     }
 
-    $workRoot = Join-Path $resourcesRoot ('.media-runtime-install-' + [Guid]::NewGuid().ToString('N'))
-    Assert-ChildPath $resourcesRoot $workRoot
+    $workRoot = Join-Path $runtimeRoot ('.media-runtime-install-' + [Guid]::NewGuid().ToString('N'))
+    Assert-PlainDirectory $runtimeRoot
+    Assert-ChildPath $runtimeRoot $workRoot
     Assert-PlainPath $workRoot
     if (Test-Path -LiteralPath $workRoot) { throw 'The temporary installation directory already exists.' }
     [void][IO.Directory]::CreateDirectory($workRoot)
+    $workRootCreated = $true
+    Assert-PlainDirectory $workRoot
     if ($From) {
         $sourceRoot = [IO.Path]::GetFullPath($From)
         Assert-PlainPath $sourceRoot
@@ -146,7 +181,7 @@ try {
         $archive = Join-Path $workRoot 'ffmpeg.7z'
         Write-Host ('Downloading the optional media runtime directly from ' + $runtime.publisher + '...')
         [Net.ServicePointManager]::SecurityProtocol = [Net.ServicePointManager]::SecurityProtocol -bor [Net.SecurityProtocolType]::Tls12
-        Invoke-WebRequest -Uri $runtime.archive.url -OutFile $archive -UseBasicParsing
+        Invoke-WebRequest -Uri $runtime.archive.url -OutFile $archive -UseBasicParsing -TimeoutSec 300
         Assert-Hash $archive $runtime.archive.sha256
         $sourceRoot = Join-Path $workRoot 'upstream'
         [void][IO.Directory]::CreateDirectory($sourceRoot)
@@ -173,21 +208,23 @@ try {
     foreach ($name in $inputs.Keys) { [IO.File]::Copy($inputs[$name], (Join-Path $staging $name), $false) }
     [IO.File]::Copy($manifestFile, (Join-Path $staging 'runtime.json'), $false)
     Assert-Runtime $staging $runtime
-    Assert-ChildPath $resourcesRoot $staging
-    Assert-ChildPath $resourcesRoot $destination
-    Assert-PlainPath $staging
+    Assert-PlainDirectory $runtimeRoot
+    Assert-ChildPath $runtimeRoot $staging
+    Assert-ChildPath $runtimeRoot $destination
+    Assert-PlainTree $staging
     Assert-PlainPath $destination
     # Atomic directory publication; a concurrent or existing install is preserved.
     [IO.Directory]::Move($staging, $destination)
     Write-Host 'Verified media runtime installed. Captioned-video export is now available in UFriend.'
-    Write-Host 'The upstream GPL license, README, and source information are preserved in resources\ffmpeg.'
+    Write-Host ('The upstream GPL license, README, and source information are preserved in ' + $destination + '.')
 } catch {
     Write-Error -Message $_.Exception.Message -ErrorAction Continue
     exit 1
 } finally {
-    if ($workRoot -and (Test-Path -LiteralPath $workRoot)) {
+    if ($workRootCreated -and $workRoot -and (Test-Path -LiteralPath $workRoot)) {
         try {
-            Assert-ChildPath $resourcesRoot $workRoot
+            Assert-PlainDirectory $runtimeRoot
+            Assert-ChildPath $runtimeRoot $workRoot
             Assert-PlainTree $workRoot
             Remove-Item -LiteralPath $workRoot -Recurse -Force
         } catch {

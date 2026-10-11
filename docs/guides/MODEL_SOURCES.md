@@ -63,6 +63,6 @@ API 端點接受 HTTPS；本機相容測試服務可使用 loopback HTTP。端�
 - 郵件：摘要階段送出該封郵件文字、寄件與收件欄位及參考時間，不包含 Gmail 授權 Token 或附件。分類階段只接收已生成摘要，不附加原信、個人背景或自訂 Prompt。
 - OCR、翻譯、潤句：分別送出選定圖片或輸入文字。啟用個人背景時，相關 LLM 任務亦會包含對應背景欄位。
 
-字幕影片匯出由已安裝的 FFmpeg 在本機執行，不受轉錄來源影響。公開可攜式 ZIP 使用者須先執行 Install media runtime.cmd，雲端語音的音訊前處理也需要此 runtime；詳見 [FFmpeg runtime 說明](../development/FFMPEG_RUNTIME.md)。雲端服務的費用、配額及資料保存政策由供應商決定。
+字幕影片匯出由已安裝的 FFmpeg 在本機執行，不受轉錄來源影響。公開可攜式版本可由「設定 → 一般 → 影音元件」下載安裝或選取已解壓的官方套件，安裝結果保存在使用者資料目錄，重啟與更新後仍可使用。雲端語音的音訊前處理也需要此 runtime；詳見 [FFmpeg runtime 說明](../development/FFMPEG_RUNTIME.md)。雲端服務的費用、配額及資料保存政策由供應商決定。
 
 [返回使用手冊](APP_README.md) · [模型介面契約](../../app/models/README.md)

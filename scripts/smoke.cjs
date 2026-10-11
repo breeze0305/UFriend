@@ -69,7 +69,7 @@ function fixtureHtmlMail({subject,body,html,logo,inlineImages=[]}) {
   ].join('\r\n');
 }
 
-async function run({app, win, core, actions, dataDir, diagnostics, videoExports}) {
+async function run({app, win, core, actions, dataDir, diagnostics, videoExports, mediaRuntime}) {
   const filter=process.argv.find(value=>value.startsWith('--smoke-filter='))?.slice('--smoke-filter='.length)||'';
   const testRoot = path.join(projectDir, '.test-data', 'smoke');
   assert(process.argv.includes('--smoke-test'), 'Smoke requires --smoke-test.');
@@ -205,6 +205,35 @@ async function run({app, win, core, actions, dataDir, diagnostics, videoExports}
       await screenshot('01-empty-home');
       await nav('inbox');
       await uiWait('Empty inbox', () => document.querySelector('#mf-page').innerText.includes('目前沒有符合條件的郵件'));
+    });
+
+    await check('media runtime settings show installation progress and retain localized failure and completion feedback', async()=>{
+      const originalSnapshot=mediaRuntime.snapshot,originalInstall=actions['mediaRuntime.install'];
+      const state={available:true,installed:false,installing:false,error:''};
+      let finish,attempts=0;
+      mediaRuntime.snapshot=()=>({...state});
+      actions['mediaRuntime.install']=async args=>{
+        assert.equal(args.mode,'download');attempts++;state.installing=true;state.error='';mediaRuntime.onChange();
+        await new Promise(resolve=>{finish=resolve;});state.installing=false;
+        if(attempts===1){state.error='找不到 7-Zip。請先安裝 7-Zip，或選擇已解壓的官方 FFmpeg 套件。';mediaRuntime.onChange();throw new Error(state.error);}
+        state.installed=true;mediaRuntime.onChange();return{installed:true};
+      };
+      try{
+        mediaRuntime.onChange();await nav('settings');await settingsCategory('general');
+        await uiWait('Media installer buttons available',()=>document.querySelector('[data-action="media-runtime-download"]')?.disabled===false);
+        await click('[data-action="media-runtime-download"]');
+        await uiWait('Media install progress',()=>document.querySelector('#media-runtime-status')?.textContent.includes('正在下載')&&document.querySelector('[data-action="media-runtime-folder"]').disabled);
+        assert.equal(attempts,1);finish();
+        await uiWait('Missing extractor guidance',()=>document.querySelector('#media-runtime-settings [role="alert"]')?.textContent.includes('7-Zip')&&!document.querySelector('[data-action="media-runtime-download"]').disabled);
+        await click('[data-action="media-runtime-download"]');
+        await uiWait('Second media install progress',()=>document.querySelector('#media-runtime-status')?.textContent.includes('正在下載'));
+        finish();await uiWait('Media runtime ready',()=>document.querySelector('#media-runtime-status')?.textContent==='影音元件已就緒。'&&document.querySelector('[data-action="media-runtime-download"]').disabled);
+        await actions['settings.save']({uiLanguage:'en'});
+        await uiWait('English media runtime controls',()=>document.querySelector('#media-runtime-status')?.textContent==='The media runtime is ready.'&&document.querySelector('[data-action="media-runtime-help"]')?.textContent.includes('Media runtime instructions'));
+      }finally{
+        finish?.();mediaRuntime.snapshot=originalSnapshot;actions['mediaRuntime.install']=originalInstall;
+        await actions['settings.save']({uiLanguage:'zh-TW'});mediaRuntime.onChange();
+      }
     });
 
     await check('event model sources remain independent across configuration, requests and meeting queues',async()=>{

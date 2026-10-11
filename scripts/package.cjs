@@ -147,7 +147,7 @@ function directoryBytes(directory) {
   return bytes;
 }
 
-function packageApp({ withoutFfmpeg = false } = {}) {
+function packageApp({ withoutFfmpeg = false, prune = true } = {}) {
   if (process.platform !== 'win32') throw new Error('Build this portable Windows package on Windows.');
   if (process.arch !== 'x64') throw new Error('The portable FFmpeg runtime requires a Windows x64 build.');
   // OAuth input is validated before any package output is created.
@@ -299,7 +299,7 @@ function packageApp({ withoutFfmpeg = false } = {}) {
   console.log(`Distribute the entire ${path.relative(projectRoot, outputRoot)} folder; UFriend.exe needs the adjacent runtime and resources.`);
   if (withoutFfmpeg) console.log('FFmpeg is not bundled. Install media runtime.cmd offers an optional, verified download from Gyan for captioned-video export.');
   if (!googleOAuthConfig) {
-    console.log('Gmail sign-in is not configured in this development package. Set UFRIEND_GOOGLE_OAUTH_FILE to a Google Desktop OAuth JSON file when building a release for users.');
+    console.log('Gmail sign-in is not configured. Users can import their Google Desktop OAuth configuration in Settings.');
   }
   // BUILD-INFO is written after icon/dependency/FFmpeg verification, so a failed build
   // never becomes the retained version or triggers removal of a working one.
@@ -307,10 +307,12 @@ function packageApp({ withoutFfmpeg = false } = {}) {
   if (!retained || retained.path.toLowerCase() !== outputRoot.toLowerCase()) {
     throw new Error('The completed output could not be confirmed as the latest package; older packages were preserved.');
   }
-  printReport(prunePackages(distRoot));
+  // The single-file wrapper defers cleanup until its EXE has also passed checks.
+  if (prune) printReport(prunePackages(distRoot));
+  return { outputRoot, version: manifest.version };
 }
 
-module.exports = { packagingOptions, copyMediaRuntimeSetup };
+module.exports = { packagingOptions, copyMediaRuntimeSetup, packageApp };
 if (require.main === module) {
   try {
     const options = packagingOptions(process.argv.slice(2));

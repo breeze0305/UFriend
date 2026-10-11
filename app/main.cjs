@@ -22,6 +22,8 @@ const {loadRemoteImage,imageDataUrl}=require('./services/mail-images.cjs');
 const {assetResponse}=require('./services/asset-protocol.cjs');
 const {VideoExportJobs}=require('./services/video-export-jobs.cjs');
 const {resolveVideoFfmpegPath}=require('./services/video-runtime.cjs');
+const {MediaRuntimeSetup}=require('./services/media-runtime-setup.cjs');
+const {relaunchOptions}=require('./services/portable-launch.cjs');
 const {ModelAdapters,modelSource}=require('./models/adapters.cjs');
 const {CloudApiAdapter}=require('./models/cloud-api.cjs');
 const {LocalLlmApiAdapter}=require('./models/local-llm-api.cjs');
@@ -46,7 +48,7 @@ if(smoke){
 }
 if(dataOverride)app.setPath('userData',path.resolve(dataOverride));
 protocol.registerSchemesAsPrivileged([{scheme:'ufriend-asset',privileges:{standard:true,secure:true,supportFetchAPI:true,stream:true}}]);
-let win,tray,store,core,vault,gmail,pool,llmApi,ocrApi,whisperApi,videoExports,diagnostics,clipboardProcess,clipboardStatus='disabled',clipboardGeneration=0;
+let win,tray,store,core,vault,gmail,pool,llmApi,ocrApi,whisperApi,videoExports,mediaRuntime,diagnostics,clipboardProcess,clipboardStatus='disabled',clipboardGeneration=0;
 let quitting=false,closing=false,broadcastTimer,lastClipboardHash='',syncTimer,syncing=false,ocrInputRevision=0,clipboardReadSequence=0,ocrUserInputRevision=0;
 const shellI18n=require('./i18n.js').create({catalogs:{en:{...require('./locales/en-common.js'),...require('./locales/en-settings.js'),...require('./locales/en-native.js'),...require('./locales/en-extra.js')}}});
 const tr=source=>{shellI18n.setLocale(store?.read()?.settings?.uiLanguage);return shellI18n.tr(source);};
@@ -108,7 +110,7 @@ async function clearData(args){
   }finally{cleanupBusy='';core.wakeRecordingScheduler();broadcast();}
   return{...result,info:await cleanupInfo()};
 }
-function publicState(){const state=core.snapshot();const accountList=gmail.listAccounts();return{...state,accounts:accountList,dataPath:dataDir,version:app.getVersion(),secrets:credentialStatus(),gmailAuth:gmailAuthStatus(),clipboard:{status:clipboardStatus},pool:pool.snapshot(),videoExport:videoExports?.snapshot()||{status:'idle'},diagnostics:diagnostics.info(),cleanup:cleanupSummary(state),syncing};}
+function publicState(){const state=core.snapshot();const accountList=gmail.listAccounts();return{...state,accounts:accountList,dataPath:dataDir,version:app.getVersion(),secrets:credentialStatus(),gmailAuth:gmailAuthStatus(),clipboard:{status:clipboardStatus},pool:pool.snapshot(),videoExport:videoExports?.snapshot()||{status:'idle'},mediaRuntime:mediaRuntime?.snapshot(),diagnostics:diagnostics.info(),cleanup:cleanupSummary(state),syncing};}
 function broadcast(){if(broadcastTimer)return;broadcastTimer=setTimeout(()=>{broadcastTimer=null;if(win&&!win.isDestroyed())win.webContents.send('ufriend:change',publicState());},70);}
 function log(text,detail='',status='success'){store.appendLog(text,detail,status);broadcast();}
 function getMessage(id){const m=store.read().messages.find(m=>m.id===id);if(!m)throw new Error(tr('找不到這封郵件。'));return m;}
@@ -166,14 +168,14 @@ async function requestQuit({restart=false}={}){
   if(quitting||closing)return;closing=true;
   try{
     core?.stopRecordingScheduler?.();mailScheduler?.stop();videoExports?.setClosing(true);
-    await flushWindow();await videoExports?.shutdown();core?.cancelMailAnalysis();core?.cancelPolish();core?.cancelChat();core?.cancelTranslation();core?.cancelOcr();
+    await flushWindow();await mediaRuntime?.shutdown();await videoExports?.shutdown();core?.cancelMailAnalysis();core?.cancelPolish();core?.cancelChat();core?.cancelTranslation();core?.cancelOcr();
     for(const key of [...core?.active?.keys()||[]])if(key.startsWith('recording:'))core.pauseRecording(key.slice(10));
     const cleanup=await Promise.allSettled([ocrApi?.cancelAll(),whisperApi?.cancelAll(),...['llm','ocr','whisper'].map(kind=>core?.models?.get?.(kind,'cloud')?.cancelAll?.())]);
     const cleanupFailure=cleanup.find(result=>result.status==='rejected'&&result.reason?.code==='MODEL_TEMP_CLEANUP_FAILED');
     if(cleanupFailure){await diagnostics?.write({event:'cloud.temp_cleanup_failed',level:'error',code:'MODEL_TEMP_CLEANUP_FAILED'});await diagnostics?.flush();throw cleanupFailure.reason;}
     await diagnostics?.write({event:restart?'app.restarting':'app.stopped'});await diagnostics?.flush();
-    if(restart)app.relaunch();quitting=true;app.quit();
-  }catch(e){closing=false;videoExports?.setClosing(false);core?.startRecordingScheduler?.();mailScheduler?.start();if(win&&!win.isDestroyed())win.show();dialog.showErrorBox(restart?tr('尚未重新啟動 UFriend'):tr('尚未關閉 UFriend'),e.message||tr('資料尚未保存，請稍後再試。'));}
+    if(restart){const options=relaunchOptions({env:process.env,argv:process.argv});if(options)app.relaunch(options);else app.relaunch();}quitting=true;app.quit();
+  }catch(e){closing=false;videoExports?.setClosing(false);core?.startRecordingScheduler?.();mailScheduler?.start();if(win&&!win.isDestroyed())win.show();dialog.showErrorBox(restart?tr('尚未重新啟動 UFriend'):tr('尚未關閉 UFriend'),tr(e.message)||tr('資料尚未保存，請稍後再試。'));}
 }
 function trayMenuTemplate(){return[{label:tr('開啟 UFriend'),click:()=>{if(win&&!win.isDestroyed()){if(win.isMinimized())win.restore();win.show();win.focus();}}},{type:'separator'},{label:tr('重新啟動 UFriend'),click:()=>requestQuit({restart:true})},{label:tr('結束 UFriend'),click:()=>requestQuit()}];}
 
@@ -363,6 +365,21 @@ const actions={
   'diagnostics.export':async()=>saveOutput('UFriend-diagnostics-'+new Date().toISOString().slice(0,10)+'.json',JSON.stringify(await diagnostics.export(),null,2),[{name:tr('診斷 JSON'),extensions:['json']}]),
   'diagnostics.report':args=>{diagnostics.write({event:'renderer.error',level:'error',source:'renderer',errorName:args.errorName,code:args.code,line:args.line,column:args.column});return{recorded:true};},
   'data.open':async()=>{await shell.openPath(dataDir);return{opened:true};},
+  'mediaRuntime.install':async args=>{
+    if(closing||quitting)throw new Error(tr('UFriend 正在關閉，請稍後再試。'));
+    if(!mediaRuntime)throw new Error(tr('此版本沒有影音元件安裝器，請查看安裝說明。'));
+    if(!['download','folder'].includes(args.mode))throw new Error(tr('操作格式錯誤。'));
+    if(mediaRuntime.snapshot().installing)throw new Error(tr('影音元件正在安裝，請稍候。'));
+    let from;
+    if(args.mode==='folder'){
+      const selection=await dialog.showOpenDialog(nativeParent(),{title:tr('選擇已解壓的官方 FFmpeg 套件'),properties:['openDirectory']});
+      if(selection.canceled||!selection.filePaths?.length)return{cancelled:true};
+      from=selection.filePaths[0];
+    }
+    if(closing||quitting)throw new Error(tr('UFriend 正在關閉，請稍後再試。'));
+    try{return await mediaRuntime.install({from});}catch(error){error.message=tr(error.message);throw error;}
+  },
+  'mediaRuntime.help':async()=>{await shell.openExternal('https://github.com/breeze0305/UFriend/blob/main/docs/development/FFMPEG_RUNTIME.md');return{opened:true};},
   'pool.add':()=>{const d=pool.addDevice();broadcast();return d;},
   'pool.remove':args=>{pool.removeDevice(args.id);broadcast();return pool.snapshot();},
   'pool.test':args=>{if(!['llm','ocr','whisper'].includes(args.model))throw new Error(tr('模型類型錯誤。'));const id=pool.submit({model:args.model,label:'排程測試 · '+args.model.toUpperCase(),durationMs:5000});broadcast();return id;},
@@ -375,13 +392,14 @@ app.whenReady().then(async()=>{
   fs.mkdirSync(dataDir,{recursive:true});diagnostics=new Diagnostics({directory:path.join(dataDir,'diagnostics'),version:app.getVersion()});await diagnostics.write({event:'app.started'});store=new Store({dataDir});vault=new Vault({dataDir,safeStorage});
   process.on('uncaughtExceptionMonitor',error=>diagnostics.writeFatal({event:'app.crashed',code:error.code||'UNCAUGHT_EXCEPTION',errorName:error.name}));
   core=new AppService({store,dataDir,models:new ModelAdapters(),onChange:broadcast});
-  videoExports=new VideoExportJobs({core,onChange:broadcast,chooseOutput:({name})=>dialog.showSaveDialog(nativeParent(),{title:tr('匯出含字幕影片'),defaultPath:safeName(name),filters:[{name:tr('MP4 影片'),extensions:['mp4']}]}),resolveFfmpeg:()=>resolveVideoFfmpegPath({isPackaged:app.isPackaged,resourcesPath:process.resourcesPath,projectRoot:path.resolve(__dirname,'..')})});
+  mediaRuntime=new MediaRuntimeSetup({isPackaged:app.isPackaged,resourcesPath:process.resourcesPath,userDataPath:app.getPath('userData'),resolveFfmpeg:()=>resolveVideoFfmpegPath({isPackaged:app.isPackaged,resourcesPath:process.resourcesPath,projectRoot:path.resolve(__dirname,'..'),userDataPath:app.getPath('userData')}),onChange:broadcast});
+  videoExports=new VideoExportJobs({core,onChange:broadcast,chooseOutput:({name})=>dialog.showSaveDialog(nativeParent(),{title:tr('匯出含字幕影片'),defaultPath:safeName(name),filters:[{name:tr('MP4 影片'),extensions:['mp4']}]}),resolveFfmpeg:()=>resolveVideoFfmpegPath({isPackaged:app.isPackaged,resourcesPath:process.resourcesPath,projectRoot:path.resolve(__dirname,'..'),userDataPath:app.getPath('userData')})});
   core.onChatStream=payload=>{if(win&&!win.isDestroyed())win.webContents.send('ufriend:chat-stream',payload);};
   core.onChatError=details=>diagnostics.write({event:'chat.failed',level:'error',task:'chat',...details});
   llmApi=new LocalLlmApiAdapter({getSettings:()=>store.read().settings,onDiagnostic:entry=>diagnostics.write(entry)});core.models.register('llm',llmApi);
   ocrApi=new LocalMediaApiAdapter({kind:'ocr',getSettings:()=>store.read().settings});core.models.register('ocr',ocrApi);
   whisperApi=new LocalMediaApiAdapter({kind:'whisper',getSettings:()=>store.read().settings});core.models.register('whisper',whisperApi);
-  for(const kind of ['llm','ocr','whisper'])core.models.register(kind,new CloudApiAdapter({kind,getSettings:()=>store.read().settings,getApiKey:()=>vault.get('cloud-api')?.key||'',onDiagnostic:entry=>diagnostics.write(entry),resolveFfmpeg:()=>resolveVideoFfmpegPath({isPackaged:app.isPackaged,resourcesPath:process.resourcesPath,projectRoot:path.resolve(__dirname,'..')})}),{source:'cloud'});
+  for(const kind of ['llm','ocr','whisper'])core.models.register(kind,new CloudApiAdapter({kind,getSettings:()=>store.read().settings,getApiKey:()=>vault.get('cloud-api')?.key||'',onDiagnostic:entry=>diagnostics.write(entry),resolveFfmpeg:()=>resolveVideoFfmpegPath({isPackaged:app.isPackaged,resourcesPath:process.resourcesPath,projectRoot:path.resolve(__dirname,'..'),userDataPath:app.getPath('userData')})}),{source:'cloud'});
   gmail=new GmailService({store,vault,openExternal:url=>shell.openExternal(url),onChange:broadcast,onAuthStatus:setGmailAuthPhase});
   pool=new ModelPoolScheduler({onEvent:event=>{if(['job-completed','device-added','device-removed','policy-changed'].includes(event.type))log('裝置池模擬',event.type);broadcast();}});pool.setPolicy(store.read().settings.policy);
   simulatedPolicyTimer=setInterval(()=>pool.tick(),100);simulatedPolicyTimer.unref();
@@ -391,7 +409,7 @@ app.whenReady().then(async()=>{
   if(!smoke){const icon=nativeImage.createFromPath(path.join(__dirname,'assets','ufriend.png'));if(!icon.isEmpty()){tray=new Tray(icon);tray.setToolTip(tr('UFriend | 你的本地助手'));tray.setContextMenu(Menu.buildFromTemplate(trayMenuTemplate()));tray.on('double-click',()=>{win.show();win.focus();});}}
   Menu.setApplicationMenu(null);await createWindow();log('開啟 UFriend');scheduleSync();core.startRecordingScheduler();if(!smoke){mailScheduler=createMailScheduler();mailScheduler.start();}if(!smoke&&store.read().settings.ocrAuto)startClipboard();
   win.webContents.on('render-process-gone',(_event,details)=>diagnostics.write({event:'renderer.gone',level:'error',reason:details.reason,exitCode:details.exitCode}));
-  if(smoke){const run=require(clipboardSmoke?'../scripts/clipboard-smoke.cjs':modelSmoke?'../scripts/model-smoke.cjs':llmFeaturesSmoke?'../scripts/llm-features-smoke.cjs':'../scripts/smoke.cjs');try{await run({app,win,core,actions,dataDir,diagnostics,videoExports,...(clipboardSmoke?{getClipboardProcess:()=>clipboardProcess}:{})});await videoExports.shutdown();await diagnostics.flush();quitting=true;app.exit(0);}catch(e){await videoExports.shutdown();await diagnostics.flush();console.error(e);app.exit(1);}}
+  if(smoke){const run=require(clipboardSmoke?'../scripts/clipboard-smoke.cjs':modelSmoke?'../scripts/model-smoke.cjs':llmFeaturesSmoke?'../scripts/llm-features-smoke.cjs':'../scripts/smoke.cjs');try{await run({app,win,core,actions,dataDir,diagnostics,videoExports,mediaRuntime,...(clipboardSmoke?{getClipboardProcess:()=>clipboardProcess}:{})});await videoExports.shutdown();await diagnostics.flush();quitting=true;app.exit(0);}catch(e){await videoExports.shutdown();await diagnostics.flush();console.error(e);app.exit(1);}}
 }).catch(async error=>{await diagnostics?.write({event:'app.startup.failed',level:'error',code:error.code||'STARTUP_FAILED',errorName:error.name});await diagnostics?.flush();console.error(error.message);if(!smoke)dialog.showErrorBox(tr('UFriend 無法開啟'),error.message);app.exit(1);});
 app.on('before-quit',event=>{if(!quitting&&!smoke){event.preventDefault();requestQuit();return;}quitting=true;core?.stopRecordingScheduler?.();videoExports?.shutdown().catch(()=>{});stopClipboard();gmail?.cancelConnect();for(const controller of core?.active?.values()||[])controller.abort();clearInterval(syncTimer);clearInterval(simulatedPolicyTimer);});
 app.on('window-all-closed',()=>{if(!tray||quitting||smoke)app.quit();});

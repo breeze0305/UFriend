@@ -2,19 +2,32 @@
 const test=require('node:test'),assert=require('node:assert/strict'),fs=require('node:fs'),path=require('node:path'),vm=require('node:vm');
 const {createRequire}=require('node:module');
 const deferred=()=>{let resolve,reject;const promise=new Promise((yes,no)=>{resolve=yes;reject=no;});return{promise,resolve,reject};};
-function harness({save=Promise.resolve(),cleanup=Promise.resolve(),cloudCleanup,videoExportCleanup,relaunchError,uiLanguage='zh-TW'}={}){
+test('portable tray restart schedules the original EXE after its media installer has stopped',async()=>{
+  const cleanup=deferred(),launcher=path.resolve('UFriend-Portable.exe');
+  const h=harness({env:{PORTABLE_EXECUTABLE_FILE:launcher},mediaSetupCleanup:cleanup.promise});
+  const restarting=h.requestQuit({restart:true});await new Promise(resolve=>setImmediate(resolve));
+  assert(h.calls.includes('media.shutdown'));assert(!h.calls.includes('relaunch'));
+  cleanup.resolve();await restarting;
+  assert.deepEqual(h.shellState.relaunchOptions,{execPath:launcher,args:[]});assert.equal(h.calls.at(-1),'quit');
+});
+test('failed media installer shutdown prevents quit and preserves a retry',async()=>{
+  const cleanup=deferred(),h=harness({mediaSetupCleanup:cleanup.promise});const quitting=h.requestQuit();
+  cleanup.reject(Object.assign(new Error('Synthetic owned installer still running'),{code:'MEDIA_SETUP_SHUTDOWN'}));await quitting;
+  assert(!h.calls.includes('quit'));assert.equal(h.lifecycle.schedulerRunning,true);assert(h.calls.includes('error:尚未關閉 UFriend'));
+});
+function harness({save=Promise.resolve(),cleanup=Promise.resolve(),cloudCleanup,videoExportCleanup,mediaSetupCleanup,relaunchError,env={},uiLanguage='zh-TW'}={}){
   const calls=[],file=path.resolve(__dirname,'../app/main.cjs'),moduleRequire=createRequire(file),module={exports:{}};
   const state={settings:{uiLanguage}},shellState={titles:[],tooltips:[],menu:null},lifecycle={schedulerRunning:true};
-  const app={setName(){},getPath(){return path.resolve(__dirname,'../.test-data/inert-restart');},whenReady(){return new Promise(()=>{});},on(){},requestSingleInstanceLock(){return true;},relaunch(){calls.push('relaunch');if(relaunchError)throw relaunchError;},quit(){calls.push('quit');}};
+  const app={setName(){},getPath(){return path.resolve(__dirname,'../.test-data/inert-restart');},whenReady(){return new Promise(()=>{});},on(){},requestSingleInstanceLock(){return true;},relaunch(options){shellState.relaunchOptions=options;calls.push('relaunch');if(relaunchError)throw relaunchError;},quit(){calls.push('quit');}};
   const electron={app,protocol:{registerSchemesAsPrivileged(){}},dialog:{showErrorBox(title){calls.push('error:'+title);}},Menu:{buildFromTemplate:template=>({items:template})}};
-  const source=fs.readFileSync(file,'utf8')+'\nmodule.exports={requestQuit,trayMenuTemplate,updateShellLanguage,tr,setContext(v){win=v.win;tray=v.tray;store=v.store;core=v.core;ocrApi=v.ocrApi;whisperApi=v.whisperApi;videoExports=v.videoExports;diagnostics=v.diagnostics;}};';
-  vm.runInNewContext(source,{require:name=>name==='electron'?electron:moduleRequire(name),module,__dirname:path.dirname(file),__filename:file,process:{argv:['test'],env:{}},Buffer,URL,console,setTimeout,clearTimeout,setInterval,clearInterval});
+  const source=fs.readFileSync(file,'utf8')+'\nmodule.exports={requestQuit,trayMenuTemplate,updateShellLanguage,tr,setContext(v){win=v.win;tray=v.tray;store=v.store;core=v.core;ocrApi=v.ocrApi;whisperApi=v.whisperApi;videoExports=v.videoExports;mediaRuntime=v.mediaRuntime;diagnostics=v.diagnostics;}};';
+  vm.runInNewContext(source,{require:name=>name==='electron'?electron:moduleRequire(name),module,__dirname:path.dirname(file),__filename:file,process:{argv:['test'],env},Buffer,URL,console,setTimeout,clearTimeout,setInterval,clearInterval});
   const core={active:new Map([['recording:sample',{}]]),pauseRecording(id){calls.push('pause:'+id);},
     stopRecordingScheduler(){lifecycle.schedulerRunning=false;calls.push('scheduler.stop');},
     startRecordingScheduler(){lifecycle.schedulerRunning=true;calls.push('scheduler.start');}};
   for(const name of ['cancelMailAnalysis','cancelPolish','cancelChat','cancelTranslation','cancelOcr'])core[name]=()=>calls.push(name);
   if(cloudCleanup)core.models={get(kind,source){assert.equal(source,'cloud');return{cancelAll(){calls.push('cloudCleanup:'+kind);return cloudCleanup;}};}};
-  module.exports.setContext({core,videoExports:videoExportCleanup===undefined?undefined:{setClosing(value){calls.push(value?'video.block':'video.resume');},shutdown(){calls.push('video.shutdown');return videoExportCleanup;}},store:{read:()=>state},tray:{setToolTip(value){shellState.tooltips.push(value);},setContextMenu(menu){shellState.menu=menu;}},win:{setTitle(value){shellState.titles.push(value);},isDestroyed:()=>false,isMinimized:()=>true,restore(){calls.push('restore');},show(){calls.push('show');},focus(){calls.push('focus');},webContents:{isDestroyed:()=>false,executeJavaScript(){calls.push('save');return save;}}},ocrApi:{cancelAll(){calls.push('ocrCleanup');return cleanup;}},whisperApi:{cancelAll(){calls.push('whisperCleanup');return Promise.resolve();}},diagnostics:{async write(entry){calls.push(entry.event);},async flush(){calls.push('logFlush');}}});
+  module.exports.setContext({core,mediaRuntime:mediaSetupCleanup===undefined?undefined:{shutdown(){calls.push('media.shutdown');return mediaSetupCleanup;}},videoExports:videoExportCleanup===undefined?undefined:{setClosing(value){calls.push(value?'video.block':'video.resume');},shutdown(){calls.push('video.shutdown');return videoExportCleanup;}},store:{read:()=>state},tray:{setToolTip(value){shellState.tooltips.push(value);},setContextMenu(menu){shellState.menu=menu;}},win:{setTitle(value){shellState.titles.push(value);},isDestroyed:()=>false,isMinimized:()=>true,restore(){calls.push('restore');},show(){calls.push('show');},focus(){calls.push('focus');},webContents:{isDestroyed:()=>false,executeJavaScript(){calls.push('save');return save;}}},ocrApi:{cancelAll(){calls.push('ocrCleanup');return cleanup;}},whisperApi:{cancelAll(){calls.push('whisperCleanup');return Promise.resolve();}},diagnostics:{async write(entry){calls.push(entry.event);},async flush(){calls.push('logFlush');}}});
   return{...module.exports,calls,state,shellState,lifecycle};
 }
 test('tray restart saves edits, cancels work and waits for cleanup before scheduling exactly one relaunch',async()=>{

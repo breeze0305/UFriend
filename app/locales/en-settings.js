@@ -1,6 +1,15 @@
 (function () {
   'use strict';
   const entries = {
+    "影音元件": "Media runtime",
+    "匯出字幕影片與雲端語音轉錄需要 FFmpeg；只安裝一次，更新程式後仍可用。": "Captioned-video export and cloud speech require FFmpeg. Install it once; it remains available after app updates.",
+    "自動下載需要 7-Zip，也可選取已解壓的官方套件。": "Automatic download requires 7-Zip. You can also select an extracted official package.",
+    "正在下載與驗證影音元件…": "Downloading and verifying the media runtime…",
+    "影音元件已就緒。": "The media runtime is ready.",
+    "尚未安裝影音元件。": "The media runtime is not installed.",
+    "下載並安裝影音元件": "Download and install media runtime",
+    "選擇已解壓的套件": "Select extracted package",
+    "影音元件安裝說明": "Media runtime instructions",
     "使用 Google 帳號連接": "Connect with Google",
     "郵件帳戶": "Email accounts",
     "連接你的 Gmail": "Connect your Gmail",
