@@ -223,7 +223,7 @@ npm run package -- --without-ffmpeg
 已有同版本最新驗證成功的資料夾包時，可依實際輸出路徑省略重建這一步：
 
 ```powershell
-npm run package:portable -- --prepackaged 'dist/UFriend-0.1.41'
+npm run package:portable -- --prepackaged 'dist/UFriend-0.1.42'
 # 若該資料夾包已含 FFmpeg，另加 --with-ffmpeg
 ```
 

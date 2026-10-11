@@ -10,7 +10,7 @@
 
 UFriend brings email, recordings, image text, and everyday writing into one local workspace. Its primary hardware target is **ASUS UGen300**: the goal is to turn a dedicated USB AI accelerator into an everyday desktop assistant. Review the original material alongside each result, edit it, and decide how to use it. The interface supports English and Traditional Chinese, with light, dark, and system themes.
 
-**Version: 0.1.41 · Windows x64 · Electron 44**
+**Version: 0.1.42 · Windows x64 · Electron 44**
 
 [Releases](https://github.com/breeze0305/UFriend/releases) · [Documentation](docs/README.md) · [User manual](docs/guides/APP_README.md) · [Report an issue](https://github.com/breeze0305/UFriend/issues)
 

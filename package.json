@@ -1,7 +1,7 @@
 {
   "name": "ufriend",
   "productName": "UFriend",
-  "version": "0.1.41",
+  "version": "0.1.42",
   "private": true,
   "description": "A local-first Windows workspace for email, transcription, OCR and AI writing.",
   "main": "app/main.cjs",

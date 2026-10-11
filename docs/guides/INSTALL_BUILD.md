@@ -223,7 +223,7 @@ Folder packages are placed in `dist/UFriend-<version>/`. If a folder for the sam
 If the latest successfully validated folder package for the same version already exists, use its actual output path to skip rebuilding it:
 
 ```powershell
-npm run package:portable -- --prepackaged 'dist/UFriend-0.1.41'
+npm run package:portable -- --prepackaged 'dist/UFriend-0.1.42'
 # Add --with-ffmpeg if that folder package already contains FFmpeg.
 ```
 

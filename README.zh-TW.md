@@ -10,7 +10,7 @@
 
 UFriend 將郵件、錄音、圖片文字與日常寫作整合在同一個本機工作空間，並以 **ASUS UGen300** 為主要目標硬體：讓專用 USB AI 加速器成為日常使用的桌面助理。你可以對照原始素材與各項處理結果、編輯內容，再決定如何使用。介面支援英文與繁體中文，以及淺色、深色和跟隨系統的佈景主題。
 
-**版本：0.1.41 · Windows x64 · Electron 44**
+**版本：0.1.42 · Windows x64 · Electron 44**
 
 [下載版本](https://github.com/breeze0305/UFriend/releases) · [文件導覽](docs/README.zh-TW.md) · [使用手冊](docs/guides/APP_README.zh-TW.md) · [回報問題](https://github.com/breeze0305/UFriend/issues)
 
