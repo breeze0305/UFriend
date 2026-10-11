@@ -18,3 +18,7 @@
 # Keep the upstream FFmpeg notices byte-for-byte for the pinned SHA-256 checks.
 scripts/runtime/ffmpeg/COPYING.GPLv3.txt -text
 scripts/runtime/ffmpeg/UPSTREAM-README.txt -text -whitespace
+# Preserve the verified bundled notices exactly as emitted by the runtime build.
+scripts/runtime/ffmpeg-bundled/*.txt -text -whitespace
+scripts/runtime/ffmpeg-bundled/SOURCES.md -text
+*.sh text eol=lf

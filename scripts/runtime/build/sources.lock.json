@@ -1,0 +1,69 @@
+{
+  "schemaVersion": 1,
+  "runtimeVersion": "8.1.2-ufriend1",
+  "target": "win32-x64",
+  "sources": [
+    {
+      "name": "ffmpeg",
+      "version": "8.1.2",
+      "revision": "38b88335f99e76ed89ff3c93f877fdefce736c13",
+      "url": "https://ffmpeg.org/releases/ffmpeg-8.1.2.tar.xz",
+      "file": "ffmpeg-8.1.2.tar.xz",
+      "sha256": "464beb5e7bf0c311e68b45ae2f04e9cc2af88851abb4082231742a74d97b524c",
+      "licenseFiles": ["COPYING.GPLv3", "COPYING.GPLv2", "COPYING.LGPLv2.1", "COPYING.LGPLv3", "LICENSE.md"]
+    },
+    {
+      "name": "x264",
+      "version": "0480cb05fa188d37ae87e8f4fd8f1aea3711f7ee",
+      "revision": "0480cb05fa188d37ae87e8f4fd8f1aea3711f7ee",
+      "url": "https://code.videolan.org/videolan/x264/-/archive/0480cb05fa188d37ae87e8f4fd8f1aea3711f7ee/x264-0480cb05fa188d37ae87e8f4fd8f1aea3711f7ee.tar.gz",
+      "file": "x264-0480cb05fa188d37ae87e8f4fd8f1aea3711f7ee.tar.gz",
+      "sha256": "d0967a1348c85dfde363bb52610403be898171493100561efa0dd05d5fd1ae50",
+      "licenseFiles": ["COPYING"]
+    },
+    {
+      "name": "lame",
+      "version": "3.100",
+      "url": "https://downloads.sourceforge.net/project/lame/lame/3.100/lame-3.100.tar.gz",
+      "file": "lame-3.100.tar.gz",
+      "sha256": "ddfe36cab873794038ae2c1210557ad34857a4b6bdc515785d1da9e175b1da1e",
+      "licenseFiles": ["COPYING"]
+    },
+    {
+      "name": "freetype",
+      "version": "2.14.1",
+      "revision": "526ec5c47b9ebccc4754c85ac0c0cdf7c85a5e9b",
+      "url": "https://download.savannah.gnu.org/releases/freetype/freetype-2.14.1.tar.xz",
+      "file": "freetype-2.14.1.tar.xz",
+      "sha256": "32427e8c471ac095853212a37aef816c60b42052d4d9e48230bab3bdf2936ccc",
+      "licenseFiles": ["LICENSE.TXT", "docs/FTL.TXT", "docs/GPLv2.TXT"]
+    },
+    {
+      "name": "fribidi",
+      "version": "1.0.16",
+      "revision": "68162babff4f39c4e2dc164a5e825af93bda9983",
+      "url": "https://github.com/fribidi/fribidi/releases/download/v1.0.16/fribidi-1.0.16.tar.xz",
+      "file": "fribidi-1.0.16.tar.xz",
+      "sha256": "1b1cde5b235d40479e91be2f0e88a309e3214c8ab470ec8a2744d82a5a9ea05c",
+      "licenseFiles": ["COPYING"]
+    },
+    {
+      "name": "harfbuzz",
+      "version": "11.5.0",
+      "revision": "bf8929fbfb623703cf1522b372cab80002c17c95",
+      "url": "https://github.com/harfbuzz/harfbuzz/releases/download/11.5.0/harfbuzz-11.5.0.tar.xz",
+      "file": "harfbuzz-11.5.0.tar.xz",
+      "sha256": "2d30ba45c4c8ec4de661a1002b4f88d0841ff1a3087f34629275f5436d722109",
+      "licenseFiles": ["COPYING"]
+    },
+    {
+      "name": "libass",
+      "version": "0.17.4",
+      "revision": "bbb3c7f1570a4a021e52683f3fbdf74fe492ae84",
+      "url": "https://github.com/libass/libass/releases/download/0.17.4/libass-0.17.4.tar.xz",
+      "file": "libass-0.17.4.tar.xz",
+      "sha256": "78f1179b838d025e9c26e8fef33f8092f65611444ffa1bfc0cfac6a33511a05a",
+      "licenseFiles": ["COPYING"]
+    }
+  ]
+}
