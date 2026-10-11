@@ -17,13 +17,15 @@ The root README provides an English overview and quick start. The detailed guide
 
 - [Model adapter contracts](../app/models/README.md)
 - [Windows clipboard component](../app/native/README.md)
-- [FFmpeg runtime](development/FFMPEG_RUNTIME.md): install through Settings, persistent runtime storage, ZIP command-line setup, and development prerequisites.
+- [FFmpeg runtime](development/FFMPEG_RUNTIME.md): the included runtime, optional installation for unbundled builds, development prerequisites, and corresponding source.
+- [Build the media runtime](development/MEDIA_RUNTIME_BUILD.md): pinned source inputs, Windows cross compilation, source packaging, and execution verification.
 - [Contributing](../CONTRIBUTING.md)
 - [Security reporting](../SECURITY.md)
 
 ## Third-party information
 
 - [Google brand assets](../app/assets/GOOGLE-BRANDING.md)
-- [FFmpeg source information](../scripts/runtime/ffmpeg/SOURCES.md)
+- [Bundled FFmpeg source information](../scripts/runtime/ffmpeg-bundled/SOURCES.md)
+- [Optional Gyan runtime provenance](../scripts/runtime/ffmpeg/SOURCES.md)
 
 The repository does not contain credentials, personal workspace data, model weights, or the independent PC model-service projects. Obtain the latter from the maintainer and follow their own installation documentation.

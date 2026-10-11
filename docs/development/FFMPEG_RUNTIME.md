@@ -2,11 +2,17 @@
 
 UFriend 使用獨立的 FFmpeg 程序處理含字幕影片匯出，以及雲端語音轉錄前的音訊擷取與分段。只有使用者明確操作安裝功能時才下載工具；影音工作不搜尋系統 `PATH`，也不啟停獨立 PC 模型服務。
 
-目前固定使用 Gyan 的 **8.1.2-essentials_build-www.gyan.dev** Windows x64 build。版本、上游下載位址與檔案 SHA-256 位於 [runtime.json](../../scripts/runtime/ffmpeg/runtime.json)。
+內建版本使用專案自行編譯的 **8.1.2-ufriend1** Windows x64 build。版本、執行檔與授權文件 SHA-256、原始碼封包及建置版本位於[內建 runtime manifest](../../scripts/runtime/ffmpeg-bundled/runtime.json)。完整原始碼作為同一份 GitHub Release 的附件提供；一般使用者只需下載 UFriend EXE。
+
+不含 FFmpeg 的成品保留另一條選用安裝路徑，直接取得 Gyan **8.1.2-essentials_build-www.gyan.dev**。其[獨立 manifest](../../scripts/runtime/ffmpeg/runtime.json)不與內建版本混用。
+
+## 已內建的版本
+
+`UFriend-0.1.41-Portable-WithFFmpeg.exe` 開啟後即可使用 FFmpeg，不需下載元件或安裝 7-Zip。**設定 → 一般 → 影音元件** 顯示「影音元件已內建，無需另外安裝」。AI 轉錄、OCR、LLM 與 Gmail 仍依各自設定使用。
 
 ## 從 UFriend 設定安裝
 
-目前公開單一 EXE 與不含影音元件的 ZIP 都**不內附 FFmpeg 執行檔**。若使用自行建置的 `Portable-WithFFmpeg.exe` 本機版，影音元件已內建，略過安裝步驟即可使用。先開啟 UFriend，再進入 **設定 → 一般 → 影音元件**（**Settings → General → Media runtime**）：
+以下適用於舊版或自行建置的**不含 FFmpeg** 成品。進入 **設定 → 一般 → 影音元件**（**Settings → General → Media runtime**）：
 
 | 按鈕 | 行為 |
 | --- | --- |
@@ -55,7 +61,7 @@ e25b682664025d49034c981afb4bae36238a40f29a3cc1c713ad9a8b5b3528f6
 
 ## ZIP 資料夾包的命令列方式
 
-完整 ZIP 解壓後仍可使用根目錄的 **Install media runtime.cmd**。在該資料夾的 PowerShell 執行以下命令，自動下載固定套件：
+此方式只適用於**不含 FFmpeg 的 UFriend 資料夾／ZIP 成品**，不適用於內建包或獨立 FFmpeg 開發 ZIP。完整解壓後可使用根目錄的 **Install media runtime.cmd**。在該資料夾的 PowerShell 執行以下命令，自動下載固定套件：
 
 ```powershell
 & '.\Install media runtime.cmd'
@@ -82,14 +88,16 @@ powershell.exe -NoProfile -ExecutionPolicy Bypass -File '.\resources\media-runti
 
 ## 原始碼開發環境
 
-開發流程與設定頁安裝器分開。在專案根目錄，將來源指向已下載、核對及解壓的固定套件：
+開發與內建打包使用專案自建的 runtime，與上述 Gyan 選用安裝器分開。從[內建 manifest](../../scripts/runtime/ffmpeg-bundled/runtime.json)指定的 `archive.url` 下載套件，核對 `archive.sha256` 後解壓；也可執行[建置流程](MEDIA_RUNTIME_BUILD.md)產生並驗證新 runtime。
+
+在專案根目錄，將來源指向包含 `bin/ffmpeg.exe`、`bin/ffprobe.exe` 與根目錄授權文件的自建套件：
 
 ```powershell
 $ffmpegSource = Read-Host '已解壓 FFmpeg 套件的資料夾'
 node scripts/prepare-ffmpeg.cjs --from $ffmpegSource
 ```
 
-準備程序核對固定 SHA-256、版本、編譯設定、ASS／subtitles 濾鏡與 libx264／AAC 編碼器，通過後才放入 `local/runtimes/ffmpeg/win32-x64/`。已有有效快取時可執行 `node scripts/prepare-ffmpeg.cjs` 再次驗證。失敗保留現有檔案，不自動改用另一個版本。
+準備程序核對固定 SHA-256、版本、編譯設定、ASS／subtitles 濾鏡與 libx264／AAC／MP3 編碼器，通過後才放入 `local/runtimes/ffmpeg/win32-x64/`。已有有效快取時可執行 `node scripts/prepare-ffmpeg.cjs` 再次驗證。失敗保留現有檔案，不自動改用另一個版本。若該位置仍是舊的 Gyan 快取，先正常結束使用它的程式，將整個快取另存至 `local/` 中的備份位置，再準備新版；不要將兩種 runtime 的檔案混合。
 
 完整影音測試還需要同一上游套件的 `ffprobe.exe`。在執行測試的 PowerShell 中設定：
 
@@ -104,7 +112,7 @@ $env:UFRIEND_TEST_FFMPEG = (Resolve-Path -LiteralPath (Join-Path $ffmpegSource '
 | 命令 | 產物及 FFmpeg 處理 |
 | --- | --- |
 | `npm run package:portable` | 單一 Windows portable EXE。使用無內附 FFmpeg、無 OAuth 設定的資料夾包作為輸入，透過 electron-builder NSIS portable target 包裝；供使用者從設定頁安裝 runtime。 |
-| `npm run package:portable -- --with-ffmpeg` | 本機測試用單一 EXE，檔名為 `Portable-WithFFmpeg.exe`。內含固定 FFmpeg 與授權／來源文件，並在包裝前核對雜湊、版本、字幕濾鏡及編碼器；首次使用不需安裝影音元件。 |
+| `npm run package:portable -- --with-ffmpeg` | 內建版單一 EXE，檔名為 `Portable-WithFFmpeg.exe`。內含自建 FFmpeg 與授權／來源文件，並在包裝前核對雜湊、版本、字幕濾鏡及編碼器；首次使用不需安裝影音元件。 |
 | `npm run package -- --without-ffmpeg` | 可供 ZIP 分發的資料夾包。附設定頁安裝器、CMD 入口、版本資訊及上游聲明，不附 FFmpeg 執行檔；無需開發用 FFmpeg 快取即可打包。 |
 | `npm run package` | 從已驗證的開發快取複製 runtime 的資料夾包，適合本機使用。打包前及複製後均進行校驗與功能探測。 |
 
@@ -112,10 +120,10 @@ $env:UFRIEND_TEST_FFMPEG = (Resolve-Path -LiteralPath (Join-Path $ffmpegSource '
 
 ## 授權與來源紀錄
 
-UFriend 專案採 [MIT License](../../LICENSE)。固定 Gyan FFmpeg build 啟用了 GPL、version3、libass 與 libx264，依其 **GPLv3** 授權提供；UFriend 的 MIT 授權不替代這些條款。
+UFriend 專案採 [MIT License](../../LICENSE)，以獨立程序執行 FFmpeg。內建 FFmpeg 啟用了 GPL、version3、libass 與 libx264，依其 **GPLv3** 授權提供；UFriend 的 MIT 授權不替代這些條款。
 
-[來源紀錄](../../scripts/runtime/ffmpeg/SOURCES.md)、完整上游 README 與 GPL 原文保留於 `scripts/runtime/ffmpeg/`。公開版本內的選用安裝器保留這些文件，安裝後與執行檔一起放入目的 runtime 目錄。`.gitattributes` 保留相關上游文字的原始位元組，以便核對雜湊。
+[內建來源紀錄](../../scripts/runtime/ffmpeg-bundled/SOURCES.md)、GPL 原文、第三方授權全文與 build 說明位於 `scripts/runtime/ffmpeg-bundled/`，打包後與 `ffmpeg.exe` 一起保存。Release 的完整對應來源附件包含 FFmpeg、實際使用的外部函式庫原始碼、固定來源校驗值及建置腳本。`runtime.json` 與成品 receipt 都記錄該來源附件的 SHA-256；公開發布前須核對一致並提供下載。GitHub 自動產生的 UFriend Source code ZIP 不包含這些第三方來源，不能代替這個附件。
 
-預設公開 EXE 與無 FFmpeg 的 ZIP 不重新分發該 FFmpeg 執行檔，使用者的安裝器直接向上游取得。若自行分發含 FFmpeg 的包，應依該元件的授權準備精確對應原始碼、外部函式庫、建置腳本及適用聲明；現有來源網址清單不等於完整 corresponding-source 包。
+選用 Gyan 安裝器使用的[來源紀錄](../../scripts/runtime/ffmpeg/SOURCES.md)與上游文件則保留在 `scripts/runtime/ffmpeg/`。不含元件的包只提供安裝器，由使用者直接向 Gyan 取得執行檔；這份上游網址清單不能代替自建版本的完整來源附件。
 
 參考：[Gyan build 說明](https://www.gyan.dev/ffmpeg/builds/) · [FFmpeg 授權資訊](https://ffmpeg.org/legal.html) · [第三方聲明](../../THIRD_PARTY_NOTICES.md)

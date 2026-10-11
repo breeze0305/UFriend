@@ -6,7 +6,7 @@ const fs = require('node:fs');
 const path = require('node:path');
 const { portableOptions, inspectTree, assertPortableExecutable, buildPortable } = require('../scripts/package-portable.cjs');
 const config = require('../scripts/electron-builder-portable.json');
-const { pinnedRuntime } = require('../scripts/ffmpeg-runtime.cjs');
+const { getPinnedRuntime } = require('../scripts/ffmpeg-runtime.cjs');
 
 const projectRoot = path.resolve(__dirname, '..');
 const windows = { skip: process.platform !== 'win32' || process.arch !== 'x64' };
@@ -68,15 +68,16 @@ function syntheticPortable(directory, name = artifactName) {
 }
 
 function bundledFixture(t) {
+  const pinnedRuntime = getPinnedRuntime();
   const f = fixture(t), directory = path.join(f.input, 'resources', 'ffmpeg');
   fs.mkdirSync(directory);
   for (const name of Object.keys(pinnedRuntime.sha256)) fs.writeFileSync(path.join(directory, name), 'Synthetic pinned runtime fixture: ' + name);
   fs.writeFileSync(path.join(directory, 'runtime.json'), JSON.stringify(pinnedRuntime));
-  const verified = { executable: path.join(directory, 'ffmpeg.exe'), version: pinnedRuntime.version, sha256: pinnedRuntime.sha256['ffmpeg.exe'], license: pinnedRuntime.license, sourceRevision: pinnedRuntime.sourceRevision, filters: ['ass', 'subtitles'], encoders: ['libx264', 'aac'] };
+  const verified = { executable: path.join(directory, 'ffmpeg.exe'), version: pinnedRuntime.version, sha256: pinnedRuntime.sha256['ffmpeg.exe'], license: pinnedRuntime.license, sourceRevision: pinnedRuntime.sourceRevision, sourceArchive: pinnedRuntime.sourceArchive, filters: ['ass', 'subtitles'], encoders: ['libx264', 'aac', 'libmp3lame'] };
   const { executable, ...metadata } = verified;
   f.build.videoRuntime = { bundled: true, path: 'resources/ffmpeg/ffmpeg.exe', ...metadata };
   fs.writeFileSync(path.join(f.input, 'BUILD-INFO.json'), JSON.stringify(f.build));
-  return { ...f, directory, verified };
+  return { ...f, directory, verified, pinnedRuntime };
 }
 
 function noCleanupReport(root) {
@@ -145,6 +146,7 @@ test('successful wrapping preserves the verified input and prior release, then e
 
 test('bundled wrapping verifies the fixed runtime, preserves input and records its provenance under a distinct artifact name', windows, t => {
   const f = bundledFixture(t), before = inspectTree(f.input);
+  const { pinnedRuntime } = f;
   let inspected = 0, built = false;
   const result = buildPortable({ root: f.root, prepackaged: f.input, withFfmpeg: true,
     inspectRuntime: (...args) => { assert.deepEqual(args, [f.directory]); inspected++; return f.verified; },
@@ -164,6 +166,7 @@ test('bundled wrapping verifies the fixed runtime, preserves input and records i
   assert.equal(result.receipt.videoRuntime.license, pinnedRuntime.license);
   assert.equal(result.receipt.videoRuntime.sourceRevision, pinnedRuntime.sourceRevision);
   assert.deepEqual(result.receipt.videoRuntime.upstreamArchive, pinnedRuntime.archive);
+  assert.deepEqual(result.receipt.videoRuntime.sourceArchive, pinnedRuntime.sourceArchive);
   assert.equal(result.receipt.videoRuntime.executable, undefined, 'Receipt must not contain an absolute runtime source path.');
   assert.equal(inspectTree(f.input).sha256, before.sha256);
   assert(fs.existsSync(path.join(f.oldRelease, 'keep.exe')));
@@ -207,9 +210,10 @@ test('real pinned verifier rejects a synthetic binary hash without executing it 
 });
 
 test('bundled runtime verification failures, metadata mismatch and OAuth never produce a release', windows, t => {
-  for (const mode of ['license', 'capability', 'metadata', 'oauth']) {
+  for (const mode of ['license', 'capability', 'metadata', 'source-archive', 'oauth']) {
     const f = bundledFixture(t);
     if (mode === 'metadata') { f.build.videoRuntime.version = 'wrong-version'; fs.writeFileSync(path.join(f.input, 'BUILD-INFO.json'), JSON.stringify(f.build)); }
+    if (mode === 'source-archive') { f.build.videoRuntime.sourceArchive = {sha256:'0'.repeat(64)}; fs.writeFileSync(path.join(f.input, 'BUILD-INFO.json'), JSON.stringify(f.build)); }
     if (mode === 'oauth') fs.writeFileSync(path.join(f.runtime, 'app', 'config', 'google-oauth.json'), JSON.stringify({ clientSecret: 'synthetic-secret' }));
     assert.throws(() => buildPortable({ root: f.root, prepackaged: f.input, withFfmpeg: true,
       inspectRuntime: directory => {

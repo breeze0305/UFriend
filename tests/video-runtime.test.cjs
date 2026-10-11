@@ -6,7 +6,7 @@ const crypto = require('node:crypto');
 const fs = require('node:fs');
 const path = require('node:path');
 const { resolveVideoFfmpegPath } = require('../app/services/video-runtime.cjs');
-const { pinnedRuntime, inspectFfmpegRuntime, verifyCapabilities } = require('../scripts/ffmpeg-runtime.cjs');
+const { optionalRuntime, getPinnedRuntime, inspectFfmpegRuntime, copyFfmpegRuntime, prepareFfmpegRuntime, verifyCapabilities } = require('../scripts/ffmpeg-runtime.cjs');
 
 const projectRoot = path.resolve(__dirname, '..');
 
@@ -17,10 +17,10 @@ function fixture(t, { changedBinary = false } = {}) {
   const root = fs.mkdtempSync(path.join(parent, 'case-'));
   const manifest = {
     version: 'test-pinned-build', license: 'GPL-3.0', sourceRevision: 'fixture',
-    configuration: '--enable-gpl --enable-version3 --enable-static --enable-libass --enable-libx264',
+    configuration: '--enable-gpl --enable-version3 --enable-static --enable-libass --enable-libx264 --enable-libmp3lame',
     sha256: {},
   };
-  for (const name of ['ffmpeg.exe', 'COPYING.GPLv3.txt', 'UPSTREAM-README.txt', 'SOURCES.md']) {
+  for (const name of ['ffmpeg.exe', 'COPYING.GPLv3.txt', 'UPSTREAM-README.txt', 'SOURCES.md', 'THIRD_PARTY_LICENSES.txt']) {
     const content = `Synthetic ${name} fixture; never executed.\n`;
     // Write the mismatched executable once: Windows scanners can briefly lock
     // a newly created .exe against a second write during the full test suite.
@@ -37,7 +37,7 @@ function fixture(t, { changedBinary = false } = {}) {
   const outputs = {
     version: `ffmpeg version ${manifest.version} Copyright (c) FFmpeg\nconfiguration: ${manifest.configuration}\n`,
     filters: ' .. ass V->V Render ASS\n .. subtitles V->V Render text\n',
-    encoders: ' V....D libx264 H.264\n A....D aac AAC\n',
+    encoders: ' V....D libx264 H.264\n A....D aac AAC\n A....D libmp3lame MP3\n',
   };
   function run(executable, args, options) {
     calls.push({ executable, args, options });
@@ -57,13 +57,13 @@ test('video runtime resolves only the development cache or packaged resources', 
   assert.throws(() => resolveVideoFfmpegPath({ resourcesPath: 'relative', isPackaged: true }), /absolute/);
 });
 
-test('runtime inspection verifies all hashes and probes subtitle, H.264 and AAC support without a shell', t => {
+test('runtime inspection verifies all hashes and probes subtitle, H.264, AAC and MP3 support without a shell', t => {
   const f = fixture(t);
   const runtime = inspectFfmpegRuntime(f.root, f);
   assert.equal(runtime.executable, path.join(f.root, 'ffmpeg.exe'));
   assert.equal(runtime.sha256, f.manifest.sha256['ffmpeg.exe']);
   assert.deepEqual(runtime.filters, ['ass', 'subtitles']);
-  assert.deepEqual(runtime.encoders, ['libx264', 'aac']);
+  assert.deepEqual(runtime.encoders, ['libx264', 'aac', 'libmp3lame']);
   assert.equal(f.calls.length, 3);
   for (const call of f.calls) {
     assert.equal(call.executable, runtime.executable);
@@ -77,6 +77,15 @@ test('changed binary is rejected before it can execute', t => {
   const f = fixture(t, { changedBinary: true });
   assert.throws(() => inspectFfmpegRuntime(f.root, f), /SHA-256 mismatch: ffmpeg.exe/);
   assert.equal(f.calls.length, 0);
+});
+
+test('runtime inspection retains the corresponding-source archive identity when pinned', t => {
+  const f = fixture(t);
+  f.manifest.sourceArchive = { name: 'synthetic-source.tar.gz', url: 'https://example.invalid/synthetic-source.tar.gz', sha256: '1'.repeat(64), buildRevision: 'fixture' };
+  fs.writeFileSync(path.join(f.root, 'runtime.json'), JSON.stringify(f.manifest));
+  const runtime = inspectFfmpegRuntime(f.root, f);
+  assert.deepEqual(runtime.sourceArchive, f.manifest.sourceArchive);
+  assert.notEqual(runtime.sourceArchive, f.manifest.sourceArchive);
 });
 
 test('missing license or altered provenance prevents a package being accepted', t => {
@@ -102,7 +111,9 @@ test('unsupported build, missing filters and missing encoders fail verification'
   assert.throws(() => verifyCapabilities(executable, f), /subtitle filters/);
   f.outputs.filters = originalFilters;
   f.outputs.encoders = ' V....D h264_nvenc H.264\n A....D aac AAC\n';
-  assert.throws(() => verifyCapabilities(executable, f), /H.264 or AAC/);
+  assert.throws(() => verifyCapabilities(executable, f), /H.264, AAC or MP3/);
+  f.outputs.encoders = ' V....D libx264 H.264\n A....D aac AAC\n';
+  assert.throws(() => verifyCapabilities(executable, f), /H.264, AAC or MP3/);
 });
 
 test('runtime probe failure never counts as successful capability verification', t => {
@@ -112,14 +123,92 @@ test('runtime probe failure never counts as successful capability verification',
   }), /timed out/);
 });
 
-test('tracked upstream notices and source inventory match the pinned hashes', () => {
-  const metadataRoot = path.join(projectRoot, 'scripts', 'runtime', 'ffmpeg');
-  for (const name of ['COPYING.GPLv3.txt', 'UPSTREAM-README.txt', 'SOURCES.md']) {
+test('tracked bundled notices and source inventory match the pinned hashes', {
+  skip: !fs.existsSync(path.join(projectRoot, 'scripts', 'runtime', 'ffmpeg-bundled', 'runtime.json'))
+    && 'The real bundled build metadata has not been produced yet.',
+}, () => {
+  const pinnedRuntime = getPinnedRuntime();
+  const metadataRoot = path.join(projectRoot, 'scripts', 'runtime', 'ffmpeg-bundled');
+  for (const name of ['COPYING.GPLv3.txt', 'UPSTREAM-README.txt', 'SOURCES.md', 'THIRD_PARTY_LICENSES.txt']) {
     const hash = crypto.createHash('sha256').update(fs.readFileSync(path.join(metadataRoot, name))).digest('hex');
     assert.equal(hash, pinnedRuntime.sha256[name], name);
   }
-  assert.equal(pinnedRuntime.license, 'GPL-3.0');
+  assert.equal(pinnedRuntime.license, 'GPL-3.0-or-later');
   assert.match(pinnedRuntime.configuration, /--enable-libass/);
   assert.match(pinnedRuntime.configuration, /--enable-libx264/);
+  assert.match(pinnedRuntime.configuration, /--enable-libmp3lame/);
   assert.doesNotMatch(pinnedRuntime.configuration, /--enable-nonfree/);
+});
+
+test('the optional installer pin remains the separate Gyan metadata', () => {
+  assert.deepEqual(optionalRuntime, require('../scripts/runtime/ffmpeg/runtime.json'));
+  assert.match(optionalRuntime.publisherUrl, /^https:\/\/www\.gyan\.dev\//);
+});
+
+test('bundled inspection requires a pinned, unmodified third-party license inventory before execution', t => {
+  const f = fixture(t);
+  const missingPin = structuredClone(f.manifest);
+  delete missingPin.sha256['THIRD_PARTY_LICENSES.txt'];
+  fs.writeFileSync(path.join(f.root, 'runtime.json'), JSON.stringify(missingPin));
+  assert.throws(() => inspectFfmpegRuntime(f.root, { ...f, manifest: missingPin }), /missing a SHA-256 pin for THIRD_PARTY_LICENSES/);
+  fs.writeFileSync(path.join(f.root, 'runtime.json'), JSON.stringify(f.manifest));
+  fs.writeFileSync(path.join(f.root, 'THIRD_PARTY_LICENSES.txt'), 'Changed inventory.');
+  assert.throws(() => inspectFfmpegRuntime(f.root, f), /SHA-256 mismatch: THIRD_PARTY_LICENSES/);
+  assert.equal(f.calls.length, 0);
+});
+
+test('bundled copying includes every pinned notice and checks the distributed copy', t => {
+  const f = fixture(t), destination = path.join(f.root, 'distributed');
+  const runtime = copyFfmpegRuntime(f.root, destination, f);
+  assert.equal(runtime.executable, path.join(destination, 'ffmpeg.exe'));
+  assert.deepEqual(fs.readdirSync(destination).sort(), [...Object.keys(f.manifest.sha256), 'runtime.json'].sort());
+  for (const [name, expected] of Object.entries(f.manifest.sha256)) {
+    assert.equal(crypto.createHash('sha256').update(fs.readFileSync(path.join(destination, name))).digest('hex'), expected);
+  }
+  assert.equal(f.calls.length, 6);
+  assert(f.calls.slice(3).every(call => call.executable === runtime.executable));
+  assert.throws(() => copyFfmpegRuntime(f.root, destination, f), /already exists; preserving/);
+});
+
+function bundledSource(f) {
+  const source = path.join(f.root, 'bundled archive');
+  fs.mkdirSync(path.join(source, 'bin'), { recursive: true });
+  for (const name of Object.keys(f.manifest.sha256)) {
+    fs.copyFileSync(path.join(f.root, name), path.join(source, name === 'ffmpeg.exe' ? 'bin/ffmpeg.exe' : name));
+  }
+  fs.writeFileSync(path.join(source, 'bin', 'ffprobe.exe'), 'Unneeded synthetic binary; never executed.');
+  return source;
+}
+
+const windows = { skip: process.platform !== 'win32' || process.arch !== 'x64' };
+
+test('bundled preparation uses the fixed archive layout and is idempotent', windows, t => {
+  const f = fixture(t), source = bundledSource(f), destination = path.join(f.root, 'cache');
+  const runtime = prepareFfmpegRuntime(source, { ...f, destination });
+  assert.equal(runtime.executable, path.join(destination, 'ffmpeg.exe'));
+  assert.deepEqual(fs.readdirSync(destination).sort(), [...Object.keys(f.manifest.sha256), 'runtime.json'].sort());
+  assert.equal(fs.existsSync(path.join(destination, 'ffprobe.exe')), false);
+  assert.deepEqual(JSON.parse(fs.readFileSync(path.join(destination, 'runtime.json'), 'utf8')), f.manifest);
+  const before = fs.statSync(runtime.executable).mtimeMs;
+  prepareFfmpegRuntime(path.join(f.root, 'unneeded source'), { ...f, destination });
+  assert.equal(fs.statSync(runtime.executable).mtimeMs, before);
+});
+
+test('bundled preparation preserves an existing Gyan cache without executing or replacing it', windows, t => {
+  const f = fixture(t), destination = path.join(f.root, 'existing Gyan cache');
+  fs.mkdirSync(destination);
+  fs.writeFileSync(path.join(destination, 'runtime.json'), JSON.stringify(optionalRuntime));
+  fs.writeFileSync(path.join(destination, 'ffmpeg.exe'), 'Old Gyan cache must survive.');
+  assert.throws(() => prepareFfmpegRuntime('unused', { ...f, destination }), /was preserved\. Move it to a separate backup/);
+  assert.equal(fs.readFileSync(path.join(destination, 'ffmpeg.exe'), 'utf8'), 'Old Gyan cache must survive.');
+  assert.deepEqual(JSON.parse(fs.readFileSync(path.join(destination, 'runtime.json'), 'utf8')), optionalRuntime);
+  assert.equal(f.calls.length, 0);
+});
+
+test('bundled preparation rejects changed archive notices before creating a cache or running a binary', windows, t => {
+  const f = fixture(t), source = bundledSource(f), destination = path.join(f.root, 'must not be created');
+  fs.writeFileSync(path.join(source, 'THIRD_PARTY_LICENSES.txt'), 'Changed source notice.');
+  assert.throws(() => prepareFfmpegRuntime(source, { ...f, destination }), /SHA-256 mismatch: THIRD_PARTY_LICENSES/);
+  assert.equal(fs.existsSync(destination), false);
+  assert.equal(f.calls.length, 0);
 });

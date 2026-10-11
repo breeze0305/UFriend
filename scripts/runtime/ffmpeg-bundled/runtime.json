@@ -1,0 +1,29 @@
+{
+  "schemaVersion": 1,
+  "product": "FFmpeg",
+  "version": "8.1.2-ufriend1",
+  "platform": "win32",
+  "architecture": "x64",
+  "license": "GPL-3.0-or-later",
+  "sourceRevision": "38b88335f99e76ed89ff3c93f877fdefce736c13",
+  "publisher": "UFriend",
+  "publisherUrl": "https://github.com/breeze0305/UFriend",
+  "archive": {
+    "url": "https://github.com/breeze0305/UFriend/releases/download/v0.1.41/ffmpeg-8.1.2-ufriend1-win64.zip",
+    "sha256": "bc9c71176e682065a166b1bda99d19211ab285070af673794a8d2b272d848f49"
+  },
+  "sourceArchive": {
+    "name": "FFmpeg-8.1.2-ufriend1-corresponding-source.tar.xz",
+    "url": "https://github.com/breeze0305/UFriend/releases/download/v0.1.41/FFmpeg-8.1.2-ufriend1-corresponding-source.tar.xz",
+    "sha256": "2225dbf44196a5cdb756b1869b5beedbf37b09f6796b5a0aae8d7f1b0d9d7540",
+    "buildRevision": "8ae97156a592ce74683c9f395c75a2a7353d719a"
+  },
+  "configuration": "--prefix=/home/runner/work/_temp/ufriend-ffmpeg-build/prefix --target-os=mingw32 --arch=x86_64 --cross-prefix=x86_64-w64-mingw32- --cc=x86_64-w64-mingw32-gcc-posix --cxx=x86_64-w64-mingw32-g++-posix --ar=x86_64-w64-mingw32-ar --ranlib=x86_64-w64-mingw32-ranlib --pkg-config=pkg-config --pkg-config-flags=--static --extra-cflags='-O2 -pipe -fno-ident -I/home/runner/work/_temp/ufriend-ffmpeg-build/prefix/include' --extra-cxxflags='-O2 -pipe -fno-ident -I/home/runner/work/_temp/ufriend-ffmpeg-build/prefix/include' --extra-ldflags='-static -static-libgcc -static-libstdc++ -Wl,--no-insert-timestamp -L/home/runner/work/_temp/ufriend-ffmpeg-build/prefix/lib' --extra-version=ufriend1 --enable-gpl --enable-version3 --enable-static --disable-shared --disable-autodetect --disable-doc --disable-debug --disable-ffplay --disable-network --disable-pthreads --enable-w32threads --enable-libass --enable-libx264 --enable-libmp3lame",
+  "sha256": {
+    "ffmpeg.exe": "5b729d5f416c47f066ec22d23a15f506064bf9cea13a014d789341d5384aaf84",
+    "COPYING.GPLv3.txt": "8ceb4b9ee5adedde47b31e975c1d90c73ad27b6b165a1dcd80c7c545eb65b903",
+    "UPSTREAM-README.txt": "21fdf283a6257408cd9e74ab49a6b4f4b50257acecd4da7969ee3e968dd4886f",
+    "SOURCES.md": "966ab557655986a66a1ad10f729ba6f045ffeadad253b0ebddfd24bb40d006c2",
+    "THIRD_PARTY_LICENSES.txt": "9b1d73d9147c687a1b2dc5ac75c4f5bbd06ce3b3493b9d1c330352da64b47468"
+  }
+}

@@ -7,7 +7,7 @@ const { createRequire } = require('node:module');
 const { createHash } = require('node:crypto');
 const { readGoogleOAuthConfig } = require('../app/services/google-oauth-config.cjs');
 const { resolveVideoFfmpegPath } = require('../app/services/video-runtime.cjs');
-const { inspectFfmpegRuntime, copyFfmpegRuntime, pinnedRuntime } = require('./ffmpeg-runtime.cjs');
+const { inspectFfmpegRuntime, copyFfmpegRuntime, optionalRuntime } = require('./ffmpeg-runtime.cjs');
 const { inspectPackages, latestPackage, compareVersions, prunePackages, withDistLock, printReport } = require('./package-retention.cjs');
 
 const projectRoot = path.resolve(__dirname, '..');
@@ -29,8 +29,8 @@ function copyMediaRuntimeSetup(outputRoot) {
   for (const name of metadataFiles) {
     const bytes = fs.readFileSync(path.join(metadataRoot, name));
     if (name === 'runtime.json') {
-      if (JSON.stringify(JSON.parse(bytes)) !== JSON.stringify(pinnedRuntime)) throw new Error('Media runtime manifest changed.');
-    } else if (createHash('sha256').update(bytes).digest('hex') !== pinnedRuntime.sha256[name]) {
+      if (JSON.stringify(JSON.parse(bytes)) !== JSON.stringify(optionalRuntime)) throw new Error('Media runtime manifest changed.');
+    } else if (createHash('sha256').update(bytes).digest('hex') !== optionalRuntime.sha256[name]) {
       throw new Error('Media runtime notice hash mismatch: ' + name);
     }
   }
@@ -40,8 +40,8 @@ function copyMediaRuntimeSetup(outputRoot) {
   fs.copyFileSync(path.join(__dirname, 'install-media-runtime.cmd'), path.join(outputRoot, 'Install media runtime.cmd'), fs.constants.COPYFILE_EXCL);
   return {
     bundled: false, optional: true, path: 'resources/ffmpeg/ffmpeg.exe',
-    expectedVersion: pinnedRuntime.version, expectedSha256: pinnedRuntime.sha256['ffmpeg.exe'],
-    license: pinnedRuntime.license, installer: 'Install media runtime.cmd',
+    expectedVersion: optionalRuntime.version, expectedSha256: optionalRuntime.sha256['ffmpeg.exe'],
+    license: optionalRuntime.license, installer: 'Install media runtime.cmd',
   };
 }
 

@@ -7,7 +7,7 @@ const path = require('node:path');
 const crypto = require('node:crypto');
 const { spawnSync } = require('node:child_process');
 const { packagingOptions, copyMediaRuntimeSetup } = require('../scripts/package.cjs');
-const { pinnedRuntime } = require('../scripts/ffmpeg-runtime.cjs');
+const { optionalRuntime } = require('../scripts/ffmpeg-runtime.cjs');
 const { inspectPackages } = require('../scripts/package-retention.cjs');
 
 const projectRoot = path.resolve(__dirname, '..');
@@ -40,7 +40,7 @@ function fixture(t) {
 function upstreamFixture(f) {
   const source = path.join(f.root, 'upstream package [demo]');
   fs.mkdirSync(path.join(source, 'bin'), { recursive: true });
-  const manifest = structuredClone(pinnedRuntime);
+  const manifest = structuredClone(optionalRuntime);
   for (const [name, upstream] of [['ffmpeg.exe', 'bin/ffmpeg.exe'], ['COPYING.GPLv3.txt', 'LICENSE'], ['UPSTREAM-README.txt', 'README.txt']]) {
     const content = Buffer.from('Synthetic ' + name + ': verified as data and never executed.\n');
     fs.writeFileSync(path.join(source, upstream), content);
@@ -72,9 +72,9 @@ test('public setup contains pinned notices and installer but no executable, and 
   assert.equal(fs.existsSync(f.destination), false);
   assert.equal(fs.readdirSync(f.setup).some(name => /\.exe$/i.test(name)), false);
   assert.equal(f.build.videoRuntime.bundled, false);
-  assert.equal(f.build.videoRuntime.expectedVersion, pinnedRuntime.version);
+  assert.equal(f.build.videoRuntime.expectedVersion, optionalRuntime.version);
   for (const name of ['COPYING.GPLv3.txt', 'UPSTREAM-README.txt', 'SOURCES.md']) {
-    assert.equal(hash(fs.readFileSync(path.join(f.setup, name))), pinnedRuntime.sha256[name]);
+    assert.equal(hash(fs.readFileSync(path.join(f.setup, name))), optionalRuntime.sha256[name]);
   }
   assert.equal(fs.existsSync(path.join(f.output, 'Install media runtime.cmd')), true);
   const packages = inspectPackages(path.dirname(f.output)).packages;
@@ -256,7 +256,7 @@ test('persistent installation verifies the real pinned upstream package when exp
   const result = runInstaller(f, ['-From', process.env.UFRIEND_TEST_MEDIA_SOURCE, '-DestinationRoot', runtimeRoot]);
   assert.equal(result.status, 0, result.stdout + result.stderr);
   const destination = path.join(runtimeRoot, 'ffmpeg');
-  for (const [name, expected] of Object.entries(pinnedRuntime.sha256)) assert.equal(hash(fs.readFileSync(path.join(destination, name))), expected);
+  for (const [name, expected] of Object.entries(optionalRuntime.sha256)) assert.equal(hash(fs.readFileSync(path.join(destination, name))), expected);
   assert.deepEqual(fs.readdirSync(runtimeRoot), ['ffmpeg']);
   assert.equal(fs.existsSync(f.destination), false);
 });

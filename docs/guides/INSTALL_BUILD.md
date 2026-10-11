@@ -4,19 +4,19 @@
 
 ## 使用已打包的程式
 
-從 [GitHub Releases](https://github.com/breeze0305/UFriend/releases) 下載 Windows x64 的 **UFriend-0.1.39-Portable.exe**。這是單一 EXE 的免安裝版本；GitHub 自動產生的 Source code ZIP／tar.gz 只有原始碼，不能直接執行。
+從 [GitHub Releases](https://github.com/breeze0305/UFriend/releases) 下載 Windows x64 的 **UFriend-0.1.41-Portable-WithFFmpeg.exe**。這是單一 EXE 的免安裝版本；原始碼附件與獨立 FFmpeg 開發套件不必下載，不能代替這個桌面程式。
 
 1. 將 EXE 保存到之後要繼續使用的位置。
 2. 若舊版仍在執行，先從 Windows 系統匣選擇「結束 UFriend」。關閉視窗可能只會隱藏到系統匣。
-3. 雙擊 `UFriend-0.1.39-Portable.exe`。不需安裝精靈、手動解壓、Node.js 或 npm。
+3. 雙擊 `UFriend-0.1.41-Portable-WithFFmpeg.exe`。不需安裝精靈、手動解壓、Node.js 或 npm。
 
 啟動器每次在獨立的 Windows 暫存目錄解壓程式，再開啟 UFriend。第一次出現視窗前可能需要等候解壓。工作資料與憑證不放在這個暫存目錄；系統匣的「重新啟動 UFriend」會再開啟原始 portable EXE。執行中請保留原始檔案，更新時先完全結束舊版，再使用新的 EXE。
 
-Windows 剪貼簿通知元件使用 .NET Framework 4.x 執行環境。單一 EXE 內含桌面執行環境；目前公開下載版不包含 FFmpeg 執行檔、AI 模型、模型服務或共用 Google OAuth client。另可依下方建置流程製作內建 FFmpeg 的本機測試版 `Portable-WithFFmpeg.exe`。
+Windows 剪貼簿通知元件使用 .NET Framework 4.x 執行環境。`Portable-WithFFmpeg.exe` 內含桌面執行環境與 FFmpeg，不需另裝影音元件或 7-Zip。AI 模型、模型服務與 Google OAuth client 仍須各自配置。
 
-### 選用影音元件
+### 不含 FFmpeg 的版本
 
-要匯出含字幕影片或使用雲端語音轉錄的音訊前處理，開啟 **設定 → 一般 → 影音元件**：
+舊版與自行建置的不含元件版本，仍可開啟 **設定 → 一般 → 影音元件** 安裝固定的 Gyan runtime。內建版會顯示已就緒，無需進行以下步驟：
 
 - 「下載並安裝影音元件」：從 Gyan 官方下載固定 FFmpeg 套件並核對雜湊，需要電腦已有 7-Zip。
 - 「選擇已解壓的套件」：以原生資料夾選擇器指定官方套件，不下載，也不需要 7-Zip；套件中需有 `bin/ffmpeg.exe`、`LICENSE` 及 `README.txt`。
@@ -26,7 +26,7 @@ Windows 剪貼簿通知元件使用 .NET Framework 4.x 執行環境。單一 EXE
 
 ### 資料夾或 ZIP 版本
 
-若使用資料夾／ZIP 成品，完整解壓後開啟 `UFriend.exe`，保留相鄰 DLL、`resources/`、`locales/` 及授權檔，不能只複製內部 EXE。這個格式同樣可從設定頁安裝影音元件，另保留 **Install media runtime.cmd** 的命令列方式；詳見 runtime 指南。
+若使用 UFriend 資料夾／ZIP 成品，完整解壓後開啟 `UFriend.exe`，保留相鄰 DLL、`resources/`、`locales/` 及授權檔，不能只複製內部 EXE。其中不含 FFmpeg 的 UFriend 包可從設定頁安裝影音元件，也提供 **Install media runtime.cmd** 的命令列方式；詳見 runtime 指南。獨立 FFmpeg 開發 ZIP 不是 UFriend 桌面程式。
 
 ### 本機資料與備份
 
@@ -50,8 +50,8 @@ AI 功能仍需配置相容的本地服務或雲端 API，見下方[接入模型
 | .NET Framework | 4.x，需具備 `csc.exe` | 編譯 C# 剪貼簿通知元件 |
 | Electron | 44.3.0，由專案固定 | 桌面程式執行環境，不需全域安裝 |
 | electron-builder | 26.17.0，由開發依賴固定 | 以 NSIS portable target 產生單一 EXE；首次建置需網路取得工具 |
-| FFmpeg | Gyan `8.1.2-essentials_build-www.gyan.dev` | 開發時的影音功能、完整影音測試及選用的含 runtime 資料夾包 |
-| 7z 解壓縮工具 | 能解開 `.7z` 套件即可 | 解壓固定的 FFmpeg 下載檔 |
+| FFmpeg | 專案固定的 `8.1.2-ufriend1` Windows x64 build | 開發時的影音功能、完整影音測試及內建 runtime 成品 |
+| 7z 解壓縮工具 | 僅 Gyan 選用安裝器需要 | 非內建版自動解壓 Gyan `.7z` 套件 |
 
 PowerShell 7 可用於輸入一般命令，但建置腳本會呼叫 Windows PowerShell 5.1。原生建置會依序尋找：
 
@@ -94,9 +94,9 @@ npm run build:native
 
 ### 3. 準備固定的 FFmpeg 與測試工具
 
-依 [FFmpeg runtime 說明](../development/FFMPEG_RUNTIME.md)下載指定的 **8.1.2 essentials** 套件，核對該文件提供的壓縮檔 SHA-256，再解壓縮。不可用任意新版替代，準備與打包腳本會核對固定版本、檔案雜湊及編碼能力。
+依 [FFmpeg runtime 說明](../development/FFMPEG_RUNTIME.md)取得專案自建的 **8.1.2-ufriend1** 套件，核對 `scripts/runtime/ffmpeg-bundled/runtime.json` 中的壓縮檔 SHA-256，再解壓縮。不可用 Gyan 或任意新版替代；內建 runtime 與選用安裝器分別使用獨立 manifest。
 
-將以下 `$ffmpegSource` 改成實際的解壓縮資料夾。該層必須含有 `bin/ffmpeg.exe`、`bin/ffprobe.exe`、`LICENSE` 與 `README.txt`：
+將以下 `$ffmpegSource` 改成實際的解壓縮資料夾。該層必須含有 `bin/ffmpeg.exe`、`bin/ffprobe.exe`，以及根目錄的 `COPYING.GPLv3.txt`、`UPSTREAM-README.txt`、`THIRD_PARTY_LICENSES.txt`、`SOURCES.md`：
 
 ```powershell
 $ffmpegSource = Read-Host '已解壓 FFmpeg 套件的資料夾'
@@ -180,7 +180,7 @@ npm run package:portable
 
 此命令先建立不內附 FFmpeg 的資料夾包，再以固定的 **electron-builder 26.17.0** 和 NSIS portable target 建置單一 EXE。首次建置需網路下載 NSIS 等建置工具；工具已有快取後可重用。命令不會代跑 `npm ci`、`build:native` 或完整測試，也不會上傳或發布 Release。
 
-所有 portable 輸入必須使用空白 OAuth 範本。預設模式不能含有 FFmpeg 執行檔；本機含元件模式須明確提供 `--with-ffmpeg`。輸入若含 Google client 設定或不符合條件，建置會停止。一般工作資料、憑證、模型權重與三個 PC 模型服務不加入包內。
+所有 portable 輸入必須使用空白 OAuth 範本。預設模式不能含有 FFmpeg 執行檔；含元件模式須明確提供 `--with-ffmpeg`。輸入若含 Google client 設定或不符合條件，建置會停止。一般工作資料、憑證、模型權重與三個 PC 模型服務不加入包內。
 
 成功後輸出位置為：
 
@@ -190,9 +190,9 @@ local/releases/UFriend-<version>-portable-<timestamp>-<id>/
   PORTABLE-BUILD-INFO.json
 ```
 
-版本取自 `package.json`，例如 `UFriend-0.1.39-Portable.exe`。命令會印出實際位置與 EXE 的 SHA-256；build receipt 記錄輸入檔案校驗、工具版本及成品資訊。單一 EXE 每次啟動使用獨立暫存目錄，執行中的工作空間與持久影音元件位於使用者資料目錄。
+版本取自 `package.json`，例如 `UFriend-0.1.41-Portable.exe`。命令會印出實際位置與 EXE 的 SHA-256；build receipt 記錄輸入檔案校驗、工具版本及成品資訊。單一 EXE 每次啟動使用獨立暫存目錄，執行中的工作空間與持久影音元件位於使用者資料目錄。
 
-### 內建 FFmpeg 的本機單一 EXE
+### 內建 FFmpeg 的單一 EXE
 
 先準備並驗證固定 FFmpeg 快取，再執行：
 
@@ -200,9 +200,9 @@ local/releases/UFriend-<version>-portable-<timestamp>-<id>/
 npm run package:portable -- --with-ffmpeg
 ```
 
-產物為 `UFriend-<version>-Portable-WithFFmpeg.exe`，例如 `UFriend-0.1.40-Portable-WithFFmpeg.exe`，同樣放在 `local/releases/` 的獨立建置目錄。它內含已驗證的 FFmpeg、GPL 原文、上游 README 與來源資訊；首次開啟即可匯出字幕影片和準備雲端轉錄音訊，不需另裝 FFmpeg 或 7-Zip。設定頁會顯示「影音元件已內建，無需另外安裝」。AI 模型與 Gmail 授權仍需各自配置。
+產物為 `UFriend-<version>-Portable-WithFFmpeg.exe`，例如 `UFriend-0.1.41-Portable-WithFFmpeg.exe`，同樣放在 `local/releases/` 的獨立建置目錄。它內含已驗證的 FFmpeg、GPL 原文、第三方授權清單與來源資訊；首次開啟即可匯出字幕影片和準備雲端轉錄音訊，不需另裝 FFmpeg 或 7-Zip。設定頁會顯示「影音元件已內建，無需另外安裝」。AI 模型與 Gmail 授權仍需各自配置。
 
-內建工具跟著每次啟動解壓到暫存目錄，並優先於既有使用者資料目錄中的選用安裝；舊的選用安裝仍保留。這個模式供本機測試，公開再分發前須準備元件的完整對應原始碼與建置資料，見 [runtime 授權與來源紀錄](../development/FFMPEG_RUNTIME.md#授權與來源紀錄)。
+內建工具跟著每次啟動解壓到暫存目錄，並優先於既有使用者資料目錄中的選用安裝；舊的選用安裝仍保留。公開發布時必須一併提供 manifest 指定的完整對應原始碼與建置資料附件，見 [runtime 授權與來源紀錄](../development/FFMPEG_RUNTIME.md#授權與來源紀錄)。
 
 ### 資料夾包與 ZIP
 
@@ -221,7 +221,7 @@ npm run package -- --without-ffmpeg
 已有同版本最新驗證成功的資料夾包時，可依實際輸出路徑省略重建這一步：
 
 ```powershell
-npm run package:portable -- --prepackaged 'dist/UFriend-0.1.40'
+npm run package:portable -- --prepackaged 'dist/UFriend-0.1.41'
 # 若該資料夾包已含 FFmpeg，另加 --with-ffmpeg
 ```
 
@@ -235,9 +235,9 @@ npm run package:portable -- --prepackaged 'dist/UFriend-0.1.40'
 npm run clean:dist
 ```
 
-這項整理只處理 `dist/` 中可辨識的 UFriend 資料夾成品，不清除 `local/releases/`、使用者工作資料或獨立模型服務。分享前應測試新 EXE 的啟動、正常退出與重啟，以及影音元件安裝後跨重啟可用；build receipt 不代表這些工作流程已全部測過。
+這項整理只處理 `dist/` 中可辨識的 UFriend 資料夾成品，不清除 `local/releases/`、使用者工作資料或獨立模型服務。分享前應測試新 EXE 的啟動、正常退出、重啟、字幕匯出及音訊處理；內建 runtime 應在首次啟動就可用，選用安裝版則須驗證安裝後跨重啟可用。build receipt 不代表這些工作流程已全部測過。
 
-公開 EXE 不分發 FFmpeg 執行檔；若自行分發含 FFmpeg 的資料夾包，另依 [FFmpeg 的授權與來源紀錄](../development/FFMPEG_RUNTIME.md#授權與來源紀錄)準備所需的對應來源與聲明。
+不含 FFmpeg 的成品只提供選用安裝器；公開 `WithFFmpeg` EXE 與其他含 FFmpeg 的成品須依 [FFmpeg 的授權與來源紀錄](../development/FFMPEG_RUNTIME.md#授權與來源紀錄)同時提供完整對應來源與聲明。
 
 ### 選配：Google 登入設定
 

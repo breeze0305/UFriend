@@ -5,7 +5,7 @@ const path = require('node:path');
 const { createHash, randomUUID } = require('node:crypto');
 const { spawnSync } = require('node:child_process');
 const { packageApp } = require('./package.cjs');
-const { inspectFfmpegRuntime, pinnedRuntime } = require('./ffmpeg-runtime.cjs');
+const { inspectFfmpegRuntime, getPinnedRuntime } = require('./ffmpeg-runtime.cjs');
 const { inspectPackages, latestPackage, prunePackages, withDistLock, printReport } = require('./package-retention.cjs');
 const builderConfig = require('./electron-builder-portable.json');
 
@@ -102,11 +102,12 @@ function validatePrepackaged(root, input, manifest, { withFfmpeg = false, inspec
     // hash, exact version/configuration, libass filters and H.264/AAC encoders.
     const { executable, ...verified } = inspectRuntime(path.join(input, 'resources', 'ffmpeg'));
     if (!samePath(executable, path.join(input, ...relative.split('/')))) throw new Error('The verified FFmpeg executable does not match the bundled runtime path.');
-    for (const name of ['version', 'sha256', 'license', 'sourceRevision', 'filters', 'encoders']) {
+    for (const name of ['version', 'sha256', 'license', 'sourceRevision', 'sourceArchive', 'filters', 'encoders']) {
       if (JSON.stringify(verified[name]) !== JSON.stringify(build.videoRuntime[name])) {
         throw new Error('Bundled FFmpeg metadata differs from the verified runtime: ' + name);
       }
     }
+    const pinnedRuntime = getPinnedRuntime();
     videoRuntime = {
       bundled: true, path: relative, ...verified,
       publisher: pinnedRuntime.publisher, publisherUrl: pinnedRuntime.publisherUrl,
